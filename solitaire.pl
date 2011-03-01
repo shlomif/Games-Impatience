@@ -322,6 +322,8 @@ sub game
     }
 }
 
+my %KING_CARDS = (map { $_ => 1 } (12,25,38,51));
+
 sub can_drop {
     my $card       = shift;
     my $card_color = int($card / 13);
@@ -331,8 +333,8 @@ sub can_drop {
     #my @stack = $layers->get_layers_behind_layer($stack);
     #my @stack = $layers->get_layers_ahead_layer($stack);
 
-    # Könige dürfen auf leeres Feld
-    if('12,25,38,51' =~ m/\b\Q$card\E\b/) {
+    # Kings cannot be put on empty fields.
+    if (exists($KING_CARDS{$card})) {
         return 1 if $target =~ m/empty_stack/;
     }
     
