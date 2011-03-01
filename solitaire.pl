@@ -50,6 +50,16 @@ my @rects = @{$layers->blit($display)};
 SDL::Video::update_rects($display, @rects) if scalar @rects;
 game();
 
+sub _x
+{
+    return shift->pos->x;
+}
+
+sub _y
+{
+    return shift->pos->y;
+}
+
 sub _handle_mouse_button_up
 {
     my ($handler) = @_;
@@ -80,26 +90,38 @@ sub _handle_mouse_button_up
                     $layer->attach($event->button_x, $event->button_y);
                     $layer->foreground;
 
+                    my $square = sub { my $n = shift; return $n*$n; };
+
+                    my $calc_dx = sub { return ( _x($target) - _x($layer) ); };
+                    my $calc_dy = sub { return ( _y($target) - _y($layer) ); };
+
+                    my $calc_dist = sub {
+                        return sqrt(
+                            $square->($calc_dx->()) + $square->($calc_dy->())
+                        );
+                    };
+
                     my $dist  = 999;
-                    my $steps = sqrt(($target->pos->x - $layer->pos->x) * ($target->pos->x - $layer->pos->x)
-                                   + ($target->pos->y - $layer->pos->y) * ($target->pos->y - $layer->pos->y)) / 40;
-                    my $step_x = ($target->pos->x - $layer->pos->x) / $steps;
-                    my $step_y = ($target->pos->y - $layer->pos->y) / $steps;
+                    my $steps = $calc_dist->() / 40;
+
+                    my $step_x = $calc_dx->() / $steps;
+                    my $step_y = $calc_dy->() / $steps;
 
                     while($dist > 40) {
                         
                         #$w += $layer->clip->w - $x;
                         #$h += $layer->clip->h - $y;
-                        $layer->pos($layer->pos->x + $step_x, $layer->pos->y + $step_y);
+                        $layer->pos(
+                            _x($layer) + $step_x, _y($layer) + $step_y
+                        );
                         $layers->blit($display);
                         #SDL::Video::update_rect($display, $x, $y, $w, $h);
                         SDL::Video::update_rect($display, 0, 0, 0, 0);
                         $fps->delay;
                         
-                        $dist = sqrt(($target->pos->x - $layer->pos->x) * ($target->pos->x - $layer->pos->x)
-                                   + ($target->pos->y - $layer->pos->y) * ($target->pos->y - $layer->pos->y));
+                        $dist = $calc_dist->();
                     }
-                    $layer->detach_xy($target->pos->x, $target->pos->y);
+                    $layer->detach_xy(_x($target), _y($target));
                     show_card(pop @stack) if scalar @stack;
                     $dropped = 1;
                 }
@@ -254,7 +276,7 @@ sub game
                 if(can_drop($layer->data->{id}, $target->data->{id})) {
                     $layer->attach($event->button_x, $event->button_y);
                     $layer->foreground;
-                    $layer->detach_xy($target->pos->x, $target->pos->y);
+                    $layer->detach_xy(_x($target), _y($target));
                     show_card($event->button_x, $event->button_y);
                 }
             }
