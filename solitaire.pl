@@ -32,7 +32,10 @@ use SDLx::Layer;
 use SDLx::FPS;
 
 SDL::init(SDL_INIT_VIDEO);
-my $display      = SDL::Video::set_video_mode(800, 600, 32, SDL_HWSURFACE | SDL_HWACCEL); # SDL_DOUBLEBUF
+
+my $display      = SDL::Video::set_video_mode(
+    800, 600, 32, SDL_HWSURFACE | SDL_HWACCEL
+); # SDL_DOUBLEBUF
 my $layers       = SDLx::LayerManager->new();
 my $event        = SDL::Event->new();
 my $loop         = 1;
