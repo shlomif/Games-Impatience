@@ -71,7 +71,9 @@ sub _handle_mouse_button_up
             && $layer->data->{id} =~ m/\d+/
             && $layer->data->{visible}
             && !scalar @{$layer->ahead}) {
-                my $target = $layers->by_position(370 + 110 * int($layer->data->{id} / 13), 40);
+                my $target = $layers->by_position(
+                    370 + 110 * int($layer->data->{id} / 13), 40
+                );
 
                 if(can_drop($layer->data->{id}, $target->data->{id})) {
                     $layer->attach($event->button_x, $event->button_y);
