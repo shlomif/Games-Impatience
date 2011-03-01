@@ -342,6 +342,7 @@ sub can_drop {
     }
     
     my $are_nums = _is_num($card) && _is_num($target);
+
     if ($are_nums
         && $card == $target + 1
         && $target == $stack->data->{id}
