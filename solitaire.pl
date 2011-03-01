@@ -64,6 +64,10 @@ sub _y
     return shift->pos->y;
 }
 
+sub _is_num {
+    return shift =~ m{\A\d+\z};
+}
+
 sub _handle_mouse_button_up
 {
     my ($handler) = @_;
@@ -337,18 +341,24 @@ sub can_drop {
         return 1;
     }
     
-    if($card =~ m/^\d+$/ && $target =~ m/^\d+$/
-    && $card == $target + 1
-    && $target == $stack->data->{id}
-    && $stack->data->{visible}) {
+    my $are_nums = _is_num($card) && _is_num($target);
+    if ($are_nums
+        && $card == $target + 1
+        && $target == $stack->data->{id}
+        && $stack->data->{visible}
+    ) 
+    {
         return 1;
     }
     
-    return 1 if($card =~ m/^\d+$/ && $target =~ m/^\d+$/
-             && '12,25,38,51' !~ m/\b\Q$card\E\b/
-             && ($card + 14 == $target || $card + 40 == $target
-              || $card - 12 == $target || $card - 38 == $target)
-             );
+    if($are_nums
+        && '12,25,38,51' !~ m/\b\Q$card\E\b/
+        && ($card + 14 == $target || $card + 40 == $target
+            || $card - 12 == $target || $card - 38 == $target)
+    )
+    {
+        return 1;
+    }
     
     return 0;
 }
