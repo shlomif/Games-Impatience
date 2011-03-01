@@ -76,17 +76,16 @@ sub _handle_mouse_button_up
                 );
 
                 if(can_drop($layer->data->{id}, $target->data->{id})) {
+
                     $layer->attach($event->button_x, $event->button_y);
                     $layer->foreground;
-                    #my $x = $layer->pos->x < $target->pos->x ? $layer->pos->x : $target->pos->x;
-                    #my $y = $layer->pos->y < $target->pos->y ? $layer->pos->y : $target->pos->y;
-                    #my $w = $layer->pos->x > $target->pos->x ? $layer->pos->x : $target->pos->x;
-                    #my $h = $layer->pos->y > $target->pos->y ? $layer->pos->y : $target->pos->y;
+
                     my $dist  = 999;
                     my $steps = sqrt(($target->pos->x - $layer->pos->x) * ($target->pos->x - $layer->pos->x)
                                    + ($target->pos->y - $layer->pos->y) * ($target->pos->y - $layer->pos->y)) / 40;
                     my $step_x = ($target->pos->x - $layer->pos->x) / $steps;
                     my $step_y = ($target->pos->y - $layer->pos->y) / $steps;
+
                     while($dist > 40) {
                         
                         #$w += $layer->clip->w - $x;
