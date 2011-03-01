@@ -167,8 +167,21 @@ sub event_loop
         }
         elsif ($type == SDL_KEYDOWN) {
             if($event->key_sym == SDLK_PRINT) {
+
                 my $screen_shot_index = 1;
-                map{$screen_shot_index = $1 + 1 if $_ =~ /Shot(\d+)\.bmp/ && $1 >= $screen_shot_index} <Shot*\.bmp>;
+
+                # TODO : perhaps do it using max.
+                foreach my $bmp_fn (<Shot*\.bmp>)
+                {
+                    if (my ($new_index) = $bmp_fn =~ /Shot(\d+)\.bmp/)
+                    { 
+                        if ($new_index >= $screen_shot_index)
+                        {
+                            $screen_shot_index = $new_index + 1;
+                        }
+                    }
+                }
+
                 SDL::Video::save_BMP($display, sprintf("Shot%04d.bmp", $screen_shot_index ));
             }
             elsif($event->key_sym == SDLK_ESCAPE) {
