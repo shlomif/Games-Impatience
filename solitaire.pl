@@ -92,8 +92,12 @@ sub _handle_mouse_button_up
 
                     my $square = sub { my $n = shift; return $n*$n; };
 
-                    my $calc_dx = sub { return ( _x($target) - _x($layer) ); };
-                    my $calc_dy = sub { return ( _y($target) - _y($layer) ); };
+                    my $calc_dx = sub {
+                        return ( _x($target) - _x($layer) ); 
+                    };
+                    my $calc_dy = sub { 
+                        return ( _y($target) - _y($layer) ); 
+                    };
 
                     my $calc_dist = sub {
                         return sqrt(
