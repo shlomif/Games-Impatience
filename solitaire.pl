@@ -33,9 +33,13 @@ use SDLx::FPS;
 
 SDL::init(SDL_INIT_VIDEO);
 
+my $WINDOW_WIDTH = 800;
+my $WINDOW_HEIGHT = 600;
+
 my $display      = SDL::Video::set_video_mode(
-    800, 600, 32, SDL_HWSURFACE | SDL_HWACCEL
+    $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
 ); # SDL_DOUBLEBUF
+
 my $layers       = SDLx::LayerManager->new();
 my $event        = SDL::Event->new();
 my $loop         = 1;
