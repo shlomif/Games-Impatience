@@ -69,6 +69,18 @@ sub _is_num {
     return shift =~ m{\A\d+\z};
 }
 
+sub _is_layer_visible {
+    my ($layer) = @_;
+
+    return
+    (
+           defined $layer
+        && $layer->data->{id} =~ m/\d+/
+        && $layer->data->{visible}
+        && !scalar @{$layer->ahead}
+    );
+}
+
 sub _handle_mouse_button_up
 {
     my ($handler) = @_;
@@ -86,10 +98,7 @@ sub _handle_mouse_button_up
             my @stack = ($layer, @{$layer->ahead});
                $layer = pop @stack if scalar @stack;
             
-            if(defined $layer
-            && $layer->data->{id} =~ m/\d+/
-            && $layer->data->{visible}
-            && !scalar @{$layer->ahead}) {
+            if( _is_layer_visible($layer) ) {
                 my $target = $layers->by_position(
                     $left_target_hotspot[0] + $space_between_stacks[0] * int($layer->data->{id} / 13), $left_target_hotspot[1]
                 );
