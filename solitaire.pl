@@ -316,10 +316,10 @@ sub game
                         my @cards = ($layer, @{$layer->behind});
                         pop @cards;
                         pop @cards;
-                        foreach(@cards) {
-                            $_->attach(@rewind_deck_2_hotspot);
-                            $_->foreground;
-                            $_->detach_xy(@{$rewind_deck_1_position->xy});
+                        foreach my $card (@cards) {
+                            $card->attach(@rewind_deck_2_hotspot);
+                            $card->foreground;
+                            $card->detach_xy(@{$rewind_deck_1_position->xy});
                             hide_card(@{$rewind_deck_1_hotspot->xy});
                         }
                     }
