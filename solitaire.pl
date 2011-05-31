@@ -524,9 +524,26 @@ sub init_background {
 
     my $self = shift;
 
-    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
-    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$self->_point_xy('rewind_deck_1_position')}, {id => 'rewind_deck'}));
-    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$self->_point_xy('rewind_deck_2_position')}, {id => 'empty_deck'}));
+    $self->layers->add(
+        SDLx::Layer->new(
+            SDL::Image::load('data/background.png'),
+            {id => 'background'}
+        )
+    );
+    $self->layers->add(
+        SDLx::Layer->new(
+            SDL::Image::load('data/empty_stack.png'), 
+            @{$self->_point_xy('rewind_deck_1_position')}, 
+            {id => 'rewind_deck'}
+        )
+    );
+    $self->layers->add(
+        SDLx::Layer->new(
+            SDL::Image::load('data/empty_stack.png'),
+            @{$self->_point_xy('rewind_deck_2_position')},
+            {id => 'empty_deck'}
+        )
+    );
     
     foreach my $idx (0 .. 3) {
         $self->layers->add(
