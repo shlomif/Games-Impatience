@@ -192,6 +192,8 @@ sub _handle_mouse_button_up
 
 sub event_loop
 {
+    my $self = shift;
+
     my $handler = shift;
     
     SDL::Events::pump_events();
@@ -364,7 +366,7 @@ sub game
     };
     
     while($loop) {
-        event_loop($handler);
+        $self->event_loop($handler);
         @rects = @{$self->layers->blit($self->display)};
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
         $fps->delay;
