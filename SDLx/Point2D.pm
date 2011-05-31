@@ -10,6 +10,12 @@ use Class::XSAccessor {
     accessors => [qw(x y)],
 };
 
+sub xy {
+    my ($self) = @_;
+
+    return [$self->x, $self->y];
+}
+
 1;
 
 
@@ -32,6 +38,10 @@ The X-coordinate.
 =head2 y()
 
 The Y-coordinate.
+
+=head2 my [$x, $y] = $point->xy();
+
+Returns a pair of (X,Y) coordinates in a single array reference.
 
 =head1 AUTHOR
 

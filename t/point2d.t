@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use SDLx::Point2D;
 
@@ -18,4 +18,7 @@ use SDLx::Point2D;
 
     # TEST
     is ($point->y, 200, "Y is 200.");
+
+    # TEST
+    is_deeply ($point->xy(), [100,200], "XY pair returns a list.");
 }
