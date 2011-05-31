@@ -556,7 +556,8 @@ sub init_cards {
     my $stack_index    = 0;
     my $stack_position = 0;
     my @card_value     = fisher_yates_shuffle([0..51]);
-    for my $card (0..51)
+
+    for my $card (0 .. 51)
     {
         my $image   = 'data/card_back.png';
         my $visible = 0;
