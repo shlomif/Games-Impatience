@@ -20,6 +20,7 @@ use SDLx::Sprite;
 use SDLx::LayerManager;
 use SDLx::Layer;
 use SDLx::FPS;
+use SDLx::Point2D;
 
 SDL::init(SDL_INIT_VIDEO);
 
@@ -38,7 +39,9 @@ my $last_click   = Time::HiRes::time;
 my $fps          = SDLx::FPS->new(fps => 60);
 my @selected_cards = ();
 my $left_mouse_down = 0;
-my @rewind_deck_1_position = (  20,  20);
+
+my $rewind_deck_1_position = SDLx::Point2D->new( x => 20, y => 20, );
+
 my @rewind_deck_1_hotspot  = (  40,  40);
 my @rewind_deck_2_position = ( 130,  20);
 my @rewind_deck_2_hotspot  = ( 150,  40);
@@ -315,7 +318,7 @@ sub game
                         foreach(@cards) {
                             $_->attach(@rewind_deck_2_hotspot);
                             $_->foreground;
-                            $_->detach_xy(@rewind_deck_1_position);
+                            $_->detach_xy(@{$rewind_deck_1_position->xy});
                             hide_card(@rewind_deck_1_hotspot);
                         }
                     }
@@ -446,7 +449,7 @@ sub show_card {
 my @layers_;
 sub init_background {
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
-    $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @rewind_deck_1_position, {id => 'rewind_deck'}));
+    $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @rewind_deck_2_position, {id => 'empty_deck'}));
     
     $layers->add(
@@ -468,7 +471,7 @@ sub init_cards {
     {
         my $image   = 'data/card_back.png';
         my $visible = 0;
-        my ($x, $y) = @rewind_deck_1_position;
+        my ($x, $y) = @{$rewind_deck_1_position->xy};
         
         if($_ < 28)
         {
