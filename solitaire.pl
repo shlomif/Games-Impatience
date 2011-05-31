@@ -142,6 +142,17 @@ sub _handle_layer {
     }
 }
 
+sub _calc_default_layer {
+    my ($idx) = @_;
+
+    return +($idx == -1)
+        ? $layers->by_position( @rewind_deck_2_hotspot )
+        : $layers->by_position( 
+            $left_stack_hotspot[0] + $space_between_stacks[0] * $idx, 
+            $left_stack_hotspot[1] 
+        );
+}
+
 sub _handle_mouse_button_up
 {
     my ($handler) = @_;
@@ -152,10 +163,9 @@ sub _handle_mouse_button_up
     my $dropped = 1;
     while($dropped) {
         $dropped = 0;
-        for(-1..6) {
-            my $layer = $_ == -1
-                      ? $layers->by_position( @rewind_deck_2_hotspot )
-                      : $layers->by_position( $left_stack_hotspot[0] + $space_between_stacks[0] * $_, $left_stack_hotspot[1] );
+        for my $idx (-1..6) {
+
+            my $layer = _calc_default_layer($idx);
 
             my @stack = ($layer, @{$layer->ahead});
             
