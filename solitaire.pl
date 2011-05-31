@@ -40,12 +40,12 @@ my $fps          = SDLx::FPS->new(fps => 60);
 my @selected_cards = ();
 my $left_mouse_down = 0;
 
-my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20, );
-my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40, );
-my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20, );
-my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40, );
+my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20,  );
+my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40,  );
+my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
+my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
 my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
-my @left_stack_hotspot     = (  40, 220);
+my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
 my @left_target_position   = ( 350,  20);
 my @left_target_hotspot    = ( 370,  40);
 my @space_between_stacks   = ( 110,  20);
@@ -150,8 +150,8 @@ sub _calc_default_layer {
     return +($idx == -1)
         ? $layers->by_position( @{$rewind_deck_2_hotspot->xy} )
         : $layers->by_position( 
-            $left_stack_hotspot[0] + $space_between_stacks[0] * $idx, 
-            $left_stack_hotspot[1] 
+            $left_stack_hotspot->x + $space_between_stacks[0] * $idx, 
+            $left_stack_hotspot->y 
         );
 }
 
