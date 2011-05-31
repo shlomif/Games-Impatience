@@ -7,7 +7,7 @@ use warnings;
 
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event last_click layers loop)],
+    accessors => [qw(display event fps last_click layers loop)],
 };
 
 use Time::HiRes;
@@ -45,19 +45,20 @@ sub new
                 $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
             ))); # SDL_DOUBLEBUF
 
+    $self->layers( SDLx::LayerManager->new() );
+
+    $self->event( SDL::Event->new() );
+
+    $self->fps( SDLx::FPS->new(fps => 60) );
+
     $self->loop(1);
 
     $self->last_click(Time::HiRes::time);
+
     return $self;
 }
 
 my $NUM_RANKS_IN_SUITS = 13;
-
-$self->layers( SDLx::LayerManager->new() );
-
-$self->event( SDL::Event->new() );
-
-my $fps          = SDLx::FPS->new(fps => 60);
 my @selected_cards = ();
 my $left_mouse_down = 0;
 
@@ -147,7 +148,7 @@ sub _handle_layer {
             $self->layers->blit($self->display);
             #SDL::Video::update_rect($self->display, $x, $y, $w, $h);
             SDL::Video::update_rect($self->display, 0, 0, 0, 0);
-            $fps->delay;
+            $self->fps->delay;
 
             $dist = $calc_dist->();
         }
@@ -380,7 +381,7 @@ sub game
         $self->event_loop($handler);
         @rects = @{$self->layers->blit($self->display)};
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
-        $fps->delay;
+        $self->fps->delay;
     }
 }
 
