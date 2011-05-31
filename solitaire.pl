@@ -44,7 +44,7 @@ my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20, );
 my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40, );
 my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20, );
 my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40, );
-my @left_stack_position    = (  20, 200);
+my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
 my @left_stack_hotspot     = (  40, 220);
 my @left_target_position   = ( 350,  20);
 my @left_target_hotspot    = ( 370,  40);
@@ -466,7 +466,7 @@ sub init_background {
     {
         $layers->add(
             SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
-                $left_stack_position[0]  + $space_between_stacks[0] * $idx, $left_stack_position[1],
+                $left_stack_position->x  + $space_between_stacks[0] * $idx, $left_stack_position->y,
                 {id => 'empty_stack'}
             )
         );
@@ -495,8 +495,8 @@ sub init_cards {
                 $image   = 'data/card_' . $card_value[$card] . '.png';
                 $visible = 1;
             }
-            $x = $left_stack_position[0] + $space_between_stacks[0] * $stack_index;
-            $y = $left_stack_position[1] + $space_between_stacks[1] * $stack_position;
+            $x = $left_stack_position->x + $space_between_stacks[0] * $stack_index;
+            $y = $left_stack_position->y + $space_between_stacks[1] * $stack_position;
             $stack_position++;
         }
         
