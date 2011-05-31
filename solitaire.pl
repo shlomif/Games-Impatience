@@ -48,7 +48,7 @@ my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
 my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
 my $left_target_position   = SDLx::Point2D->new( x => 350, y => 20,  );
 my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
-my @space_between_stacks   = ( 110,  20);
+my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
 my $hotspot_offset         = 20;
 
 init_background();
@@ -87,7 +87,7 @@ sub _handle_layer {
     my ($layer, $stack_ref) = @_;
 
     my $target = $layers->by_position(
-        $left_target_hotspot->x + $space_between_stacks[0] * int($layer->data->{id} / 13), $left_target_hotspot->y
+        $left_target_hotspot->x + $space_between_stacks->x * int($layer->data->{id} / 13), $left_target_hotspot->y
     );
 
     if(can_drop($layer->data->{id}, $target->data->{id})) {
@@ -150,7 +150,7 @@ sub _calc_default_layer {
     return +($idx == -1)
         ? $layers->by_position( @{$rewind_deck_2_hotspot->xy} )
         : $layers->by_position( 
-            $left_stack_hotspot->x + $space_between_stacks[0] * $idx, 
+            $left_stack_hotspot->x + $space_between_stacks->x * $idx, 
             $left_stack_hotspot->y 
         );
 }
@@ -276,7 +276,7 @@ sub game
                     # to face-up card
                     elsif($stack[0]->data->{visible}
                        && can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $space_between_stacks[1])};
+                        @position_before = @{$layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $space_between_stacks->y)};
                         $dropped         = 1;
                     }
                     
@@ -383,7 +383,7 @@ sub can_drop {
     my $card       = shift;
     my $card_color = int($card / 13);
     my $target     = shift;
-    my $stack      = $layers->by_position($left_target_hotspot->x + $space_between_stacks[0] * $card_color, $left_target_hotspot->y);
+    my $stack      = $layers->by_position($left_target_hotspot->x + $space_between_stacks->x * $card_color, $left_target_hotspot->y);
     
     #my @stack = $layers->get_layers_behind_layer($stack);
     #my @stack = $layers->get_layers_ahead_layer($stack);
@@ -455,7 +455,7 @@ sub init_background {
         $layers->add(
             SDLx::Layer->new(
                 SDL::Image::load('data/empty_target_' . $idx . '.png'),
-                $left_target_position->x + $space_between_stacks[0] * $idx,
+                $left_target_position->x + $space_between_stacks->x * $idx,
                 $left_target_position->y,
                 {id => 'empty_target_' . $idx}
             )
@@ -466,7 +466,7 @@ sub init_background {
     {
         $layers->add(
             SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
-                $left_stack_position->x  + $space_between_stacks[0] * $idx, $left_stack_position->y,
+                $left_stack_position->x  + $space_between_stacks->x * $idx, $left_stack_position->y,
                 {id => 'empty_stack'}
             )
         );
@@ -495,8 +495,8 @@ sub init_cards {
                 $image   = 'data/card_' . $card_value[$card] . '.png';
                 $visible = 1;
             }
-            $x = $left_stack_position->x + $space_between_stacks[0] * $stack_index;
-            $y = $left_stack_position->y + $space_between_stacks[1] * $stack_position;
+            $x = $left_stack_position->x + $space_between_stacks->x * $stack_index;
+            $y = $left_stack_position->y + $space_between_stacks->y * $stack_position;
             $stack_position++;
         }
         
