@@ -638,3 +638,10 @@ $self->play();
 
 1;
 
+=head1 COPYRIGHT AND LICENSE
+
+Copyright by FROGGS, 2010-2011 under the Artistic 2.0 License. See the
+C<COPYING> file for details.
+
+=cut
+
