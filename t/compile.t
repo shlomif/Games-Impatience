@@ -7,6 +7,6 @@ use Test::More tests => 1;
 
 {
     # TEST
-    ok (!system($^X, "-c", "solitaire.pl"),
+    ok (!system($^X, "-c", "Games/Impatience.pm"),
         "solitaire.pl compiles.");
 }
