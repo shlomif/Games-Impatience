@@ -1,3 +1,6 @@
 (hard) card dragging should be smoother
 (easy) released card shouldn't have to be *exactly* in destination spot
 (easy) card sound!
+(easy) Add support for Freecell - http://en.wikipedia.org/wiki/FreeCell
+(easy) implement numbered deals - possibly compatible with FreeCell Pro and
+------ PySolFC.
