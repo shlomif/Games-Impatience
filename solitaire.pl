@@ -61,7 +61,8 @@ sub new
 
     $self->_add_point('rewind_deck_1_position', { x => 20,   y => 20,  });
     $self->_add_point('rewind_deck_1_hotspot',  { x => 40,   y => 40,  });
-
+    $self->_add_point('rewind_deck_2_position', { x=> 130, y => 20, });    $self->_add_point('rewind_deck_2_hotspot', { x=> 150, y => 40, });    $self->_add_point('left_stack_position', { x=> 20, y => 200, });    $self->_add_point('left_stack_hotspot', { x=> 40, y => 220, });    $self->_add_point('left_target_position', { x=> 350, y => 20, });    $self->_add_point('left_target_hotspot', { x=> 370, y => 40, });    $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
+    # ADD_HERE_POINT
     return $self;
 }
 
@@ -81,6 +82,19 @@ sub _point {
     return $self->_points->{$name};
 }
 
+sub _point_x {
+    my ($self, $name) = @_;
+
+    return $self->_point($name)->x;
+}
+
+sub _point_y {
+    my ($self, $name) = @_;
+
+    return $self->_point($name)->y;
+}
+
+
 sub _point_xy {
     my ($self, $name) = @_;
 
@@ -89,13 +103,13 @@ sub _point_xy {
 
 my $NUM_RANKS_IN_SUITS = 13;
 
-my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
-my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
-my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
-my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
-my $left_target_position   = SDLx::Point2D->new( x => 350, y => 20,  );
-my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
-my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
+# my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
+# my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
+# my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
+# my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
+# my $left_target_position   = SDLx::Point2D->new( x => 350, y => 20,  );
+# my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
+# my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
 my $hotspot_offset         = 20;
 
 sub play
@@ -142,7 +156,7 @@ sub _handle_layer {
     my ($self, $layer, $stack_ref) = @_;
 
     my $target = $self->layers->by_position(
-        $left_target_hotspot->x + $space_between_stacks->x * int($layer->data->{id} / 13), $left_target_hotspot->y
+        $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
     );
 
     if($self->can_drop($layer->data->{id}, $target->data->{id})) {
@@ -203,10 +217,10 @@ sub _calc_default_layer {
     my ($self, $idx) = @_;
 
     return +($idx == -1)
-        ? $self->layers->by_position( @{$rewind_deck_2_hotspot->xy} )
+        ? $self->layers->by_position( @{$self->_point_xy('rewind_deck_2_hotspot')} )
         : $self->layers->by_position( 
-            $left_stack_hotspot->x + $space_between_stacks->x * $idx, 
-            $left_stack_hotspot->y 
+            $self->_point_x('left_stack_hotspot') + $self->_point_x('space_between_stacks') * $idx, 
+            $self->_point_y('left_stack_hotspot') 
         );
 }
 
@@ -335,7 +349,7 @@ sub game
                     # to face-up card
                     elsif($stack[0]->data->{visible}
                        && $self->can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $space_between_stacks->y)};
+                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
                         $dropped         = 1;
                     }
                     
@@ -363,17 +377,17 @@ sub game
                         elsif(!scalar @{$layer->ahead}) {
                             $layer->attach($self->event->button_x, $self->event->button_y);
                             $layer->foreground;
-                            $layer->detach_xy(@{$rewind_deck_2_position->xy});
+                            $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
                             $self->show_card($layer);
                         }
                     }
                     elsif($layer->data->{id} =~ m/rewind_deck/) {
-                        $layer = $self->layers->by_position(@{$rewind_deck_2_hotspot->xy});
+                        $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
                         my @cards = ($layer, @{$layer->behind});
                         pop @cards;
                         pop @cards;
                         foreach my $card (@cards) {
-                            $card->attach(@{$rewind_deck_2_hotspot->xy});
+                            $card->attach(@{$self->_point_xy('rewind_deck_2_hotspot')});
                             $card->foreground;
                             $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
                             $self->hide_card($self->_point('rewind_deck_1_hotspot'));
@@ -393,7 +407,7 @@ sub game
             && $layer->data->{id} =~ m/\d+/
             && $layer->data->{visible}) {
                 my $target = $self->layers->by_position(
-                    $left_target_hotspot->x + 11 * int($layer->data->{id} / 13), $left_target_hotspot->y
+                    $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
                 );
 
                 if($self->can_drop($layer->data->{id}, $target->data->{id})) {
@@ -444,7 +458,7 @@ sub can_drop {
     my $card       = shift;
     my $card_color = int($card / 13);
     my $target     = shift;
-    my $stack      = $self->layers->by_position($left_target_hotspot->x + $space_between_stacks->x * $card_color, $left_target_hotspot->y);
+    my $stack      = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_color, $self->_point_y('left_target_hotspot'));
     
     #my @stack = $self->layers->get_layers_behind_layer($stack);
     #my @stack = $self->layers->get_layers_ahead_layer($stack);
@@ -517,14 +531,14 @@ sub init_background {
 
     $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
     $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$self->_point_xy('rewind_deck_1_position')}, {id => 'rewind_deck'}));
-    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_2_position->xy}, {id => 'empty_deck'}));
+    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$self->_point_xy('rewind_deck_2_position')}, {id => 'empty_deck'}));
     
     foreach my $idx (0 .. 3) {
         $self->layers->add(
             SDLx::Layer->new(
                 SDL::Image::load('data/empty_target_' . $idx . '.png'),
-                $left_target_position->x + $space_between_stacks->x * $idx,
-                $left_target_position->y,
+                $self->_point_x('left_target_position') + $self->_point_x('space_between_stacks') * $idx,
+                $self->_point_y('left_target_position'),
                 {id => 'empty_target_' . $idx}
             )
         );
@@ -534,7 +548,7 @@ sub init_background {
     {
         $self->layers->add(
             SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
-                $left_stack_position->x  + $space_between_stacks->x * $idx, $left_stack_position->y,
+                $self->_point_x('left_stack_position')  + $self->_point_x('space_between_stacks') * $idx, $self->_point_y('left_stack_position'),
                 {id => 'empty_stack'}
             )
         );
@@ -565,8 +579,8 @@ sub init_cards {
                 $image   = 'data/card_' . $card_value[$card] . '.png';
                 $visible = 1;
             }
-            $x = $left_stack_position->x + $space_between_stacks->x * $stack_index;
-            $y = $left_stack_position->y + $space_between_stacks->y * $stack_position;
+            $x = $self->_point_x('left_stack_position') + $self->_point_x('space_between_stacks') * $stack_index;
+            $y = $self->_point_y('left_stack_position') + $self->_point_y('space_between_stacks') * $stack_position;
             $stack_position++;
         }
         
