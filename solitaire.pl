@@ -43,7 +43,7 @@ my $left_mouse_down = 0;
 my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20, );
 my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40, );
 my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20, );
-my @rewind_deck_2_hotspot  = ( 150,  40);
+my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40, );
 my @left_stack_position    = (  20, 200);
 my @left_stack_hotspot     = (  40, 220);
 my @left_target_position   = ( 350,  20);
@@ -148,7 +148,7 @@ sub _calc_default_layer {
     my ($idx) = @_;
 
     return +($idx == -1)
-        ? $layers->by_position( @rewind_deck_2_hotspot )
+        ? $layers->by_position( @{$rewind_deck_2_hotspot->xy} )
         : $layers->by_position( 
             $left_stack_hotspot[0] + $space_between_stacks[0] * $idx, 
             $left_stack_hotspot[1] 
@@ -309,12 +309,12 @@ sub game
                         }
                     }
                     elsif($layer->data->{id} =~ m/rewind_deck/) {
-                        $layer = $layers->by_position(@rewind_deck_2_hotspot);
+                        $layer = $layers->by_position(@{$rewind_deck_2_hotspot->xy});
                         my @cards = ($layer, @{$layer->behind});
                         pop @cards;
                         pop @cards;
                         foreach my $card (@cards) {
-                            $card->attach(@rewind_deck_2_hotspot);
+                            $card->attach(@{$rewind_deck_2_hotspot->xy});
                             $card->foreground;
                             $card->detach_xy(@{$rewind_deck_1_position->xy});
                             hide_card($rewind_deck_1_hotspot);
