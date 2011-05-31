@@ -40,11 +40,9 @@ my $fps          = SDLx::FPS->new(fps => 60);
 my @selected_cards = ();
 my $left_mouse_down = 0;
 
-my $rewind_deck_1_position = SDLx::Point2D->new( x => 20, y => 20, );
-
-my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40, y => 40, );
-
-my @rewind_deck_2_position = ( 130,  20);
+my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20, );
+my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40, );
+my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20, );
 my @rewind_deck_2_hotspot  = ( 150,  40);
 my @left_stack_position    = (  20, 200);
 my @left_stack_hotspot     = (  40, 220);
@@ -306,7 +304,7 @@ sub game
                         elsif(!scalar @{$layer->ahead}) {
                             $layer->attach($event->button_x, $event->button_y);
                             $layer->foreground;
-                            $layer->detach_xy(@rewind_deck_2_position);
+                            $layer->detach_xy(@{$rewind_deck_2_position->xy});
                             show_card($layer);
                         }
                     }
@@ -451,7 +449,7 @@ my @layers_;
 sub init_background {
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
-    $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @rewind_deck_2_position, {id => 'empty_deck'}));
+    $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_2_position->xy}, {id => 'empty_deck'}));
     
     foreach my $idx (0 .. 3) {
         $layers->add(
