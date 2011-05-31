@@ -32,16 +32,22 @@ use SDLx::Layer;
 use SDLx::FPS;
 use SDLx::Point2D;
 
-SDL::init(SDL_INIT_VIDEO);
 
+# Some constants.
 my $WINDOW_WIDTH  = 800;
 my $WINDOW_HEIGHT = 600;
+
+my $NUM_RANKS_IN_SUITS = 13;
+
+my $hotspot_offset         = 20;
 
 sub new
 {
     my $class = shift;
 
     my $self = $class->_create_empty_new(@_);
+
+    SDL::init(SDL_INIT_VIDEO);
 
     $self->display(scalar (SDL::Video::set_video_mode(
                 $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
@@ -100,10 +106,6 @@ sub _point_xy {
 
     return $self->_point($name)->xy;
 }
-
-my $NUM_RANKS_IN_SUITS = 13;
-
-my $hotspot_offset         = 20;
 
 sub play
 {
