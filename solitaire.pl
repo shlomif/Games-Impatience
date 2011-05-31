@@ -5,9 +5,13 @@ package Games::Cards::Solitaire::SDL;
 use strict;
 use warnings;
 
+use Carp;
+
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event fps last_click layers left_mouse_down loop)],
+    accessors => [qw(display event fps last_click layers left_mouse_down loop
+        _points    
+    )],
 };
 
 use Time::HiRes;
@@ -53,12 +57,30 @@ sub new
 
     $self->last_click(Time::HiRes::time);
 
+    $self->_points(+{});
+
+    $self->_add_point('rewind_deck_1_position', { x => 20,   y => 20,  });
+
     return $self;
+}
+
+sub _add_point {
+    my ($self, $name, $xy) = @_;
+
+    $self->_points->{$name} = SDLx::Point2D->new(%$xy);
+}
+
+sub _point_xy {
+    my ($self, $name) = @_;
+
+    if (! exists($self->_points->{$name})) {
+        Carp::confess "Unknown Point of name '$name'!";
+    }
+    return $self->_points->{$name}->xy;
 }
 
 my $NUM_RANKS_IN_SUITS = 13;
 
-my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20,  );
 my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40,  );
 my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
 my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
@@ -346,7 +368,7 @@ sub game
                         foreach my $card (@cards) {
                             $card->attach(@{$rewind_deck_2_hotspot->xy});
                             $card->foreground;
-                            $card->detach_xy(@{$rewind_deck_1_position->xy});
+                            $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
                             $self->hide_card($rewind_deck_1_hotspot);
                         }
                     }
@@ -487,7 +509,7 @@ sub init_background {
     my $self = shift;
 
     $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
-    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
+    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$self->_point_xy('rewind_deck_1_position')}, {id => 'rewind_deck'}));
     $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_2_position->xy}, {id => 'empty_deck'}));
     
     foreach my $idx (0 .. 3) {
@@ -522,7 +544,7 @@ sub init_cards {
     {
         my $image   = 'data/card_back.png';
         my $visible = 0;
-        my ($x, $y) = @{$rewind_deck_1_position->xy};
+        my ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
         
         if($card < 28)
         {
