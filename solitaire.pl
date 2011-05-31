@@ -563,6 +563,12 @@ sub fisher_yates_shuffle
     return @$array;
 }
 
+1;
+
+package main;
+
 my $self = Games::Cards::Solitaire::SDL->new;
 $self->play();
+
+1;
 
