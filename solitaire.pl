@@ -324,6 +324,7 @@ sub game
 }
 
 my %KING_CARDS = (map { $_ => 1 } (12,25,38,51));
+my %ACES_CARDS = (map { ($_*13) => 1 } (0 .. 3));
 
 sub can_drop {
     my $card       = shift;
@@ -340,7 +341,8 @@ sub can_drop {
     }
     
     # Aces can be put on empty field (at upper right)
-    if('0,13,26,39' =~ m/\b\Q$card\E\b/ && $target =~ m/empty_target_\Q$card_color\E/) {
+    if(    exists($ACES_CARDS{$card}) 
+        && $target =~ m/empty_target_\Q$card_color\E/) {
         return 1;
     }
     
