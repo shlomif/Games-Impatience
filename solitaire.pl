@@ -377,7 +377,7 @@ sub game
     
     while($self->loop) {
         $self->event_loop($handler);
-        @rects = @{$self->layers->blit($self->display)};
+        $self->layers->blit($self->display);
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
         $self->fps->delay;
     }
