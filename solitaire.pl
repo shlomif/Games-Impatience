@@ -47,7 +47,7 @@ my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
 my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
 my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
 my $left_target_position   = SDLx::Point2D->new( x => 350, y => 20,  );
-my @left_target_hotspot    = ( 370,  40);
+my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
 my @space_between_stacks   = ( 110,  20);
 my $hotspot_offset         = 20;
 
@@ -87,7 +87,7 @@ sub _handle_layer {
     my ($layer, $stack_ref) = @_;
 
     my $target = $layers->by_position(
-        $left_target_hotspot[0] + $space_between_stacks[0] * int($layer->data->{id} / 13), $left_target_hotspot[1]
+        $left_target_hotspot->x + $space_between_stacks[0] * int($layer->data->{id} / 13), $left_target_hotspot->y
     );
 
     if(can_drop($layer->data->{id}, $target->data->{id})) {
@@ -334,7 +334,7 @@ sub game
             && $layer->data->{id} =~ m/\d+/
             && $layer->data->{visible}) {
                 my $target = $layers->by_position(
-                    $left_target_hotspot[0] + 11 * int($layer->data->{id} / 13), $left_target_hotspot[1]
+                    $left_target_hotspot->x + 11 * int($layer->data->{id} / 13), $left_target_hotspot->y
                 );
 
                 if(can_drop($layer->data->{id}, $target->data->{id})) {
@@ -383,7 +383,7 @@ sub can_drop {
     my $card       = shift;
     my $card_color = int($card / 13);
     my $target     = shift;
-    my $stack      = $layers->by_position($left_target_hotspot[0] + $space_between_stacks[0] * $card_color, $left_target_hotspot[1]);
+    my $stack      = $layers->by_position($left_target_hotspot->x + $space_between_stacks[0] * $card_color, $left_target_hotspot->y);
     
     #my @stack = $layers->get_layers_behind_layer($stack);
     #my @stack = $layers->get_layers_ahead_layer($stack);
