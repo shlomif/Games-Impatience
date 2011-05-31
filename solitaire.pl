@@ -103,13 +103,6 @@ sub _point_xy {
 
 my $NUM_RANKS_IN_SUITS = 13;
 
-# my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
-# my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
-# my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
-# my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
-# my $left_target_position   = SDLx::Point2D->new( x => 350, y => 20,  );
-# my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
-# my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
 my $hotspot_offset         = 20;
 
 sub play
