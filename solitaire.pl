@@ -33,8 +33,6 @@ SDL::init(SDL_INIT_VIDEO);
 my $WINDOW_WIDTH  = 800;
 my $WINDOW_HEIGHT = 600;
 
-my $self = Games::Cards::Solitaire::SDL->new;
-
 sub new
 {
     my $class = shift;
@@ -71,14 +69,19 @@ my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
 my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
 my $hotspot_offset         = 20;
 
-$self->init_background();
-$self->init_cards();
+sub play
+{
+    my $self = shift;
 
-if ( my @rects = @{$self->layers->blit($self->display)} ) {
-    SDL::Video::update_rects($self->display, @rects);
+    $self->init_background();
+    $self->init_cards();
+
+    if ( my @rects = @{$self->layers->blit($self->display)} ) {
+        SDL::Video::update_rects($self->display, @rects);
+    }
+
+    return $self->game();
 }
-
-$self->game();
 
 sub _x
 {
@@ -107,13 +110,13 @@ sub _is_layer_visible {
 }
 
 sub _handle_layer {
-    my ($layer, $stack_ref) = @_;
+    my ($self, $layer, $stack_ref) = @_;
 
     my $target = $self->layers->by_position(
         $left_target_hotspot->x + $space_between_stacks->x * int($layer->data->{id} / 13), $left_target_hotspot->y
     );
 
-    if(can_drop($layer->data->{id}, $target->data->{id})) {
+    if($self->can_drop($layer->data->{id}, $target->data->{id})) {
 
         $layer->attach($self->event->button_x, $self->event->button_y);
         $layer->foreground;
@@ -157,7 +160,7 @@ sub _handle_layer {
 
         if (@$stack_ref)
         {
-            show_card(pop @$stack_ref);
+            $self->show_card(pop @$stack_ref);
         }
 
         return 1;
@@ -168,7 +171,7 @@ sub _handle_layer {
 }
 
 sub _calc_default_layer {
-    my ($idx) = @_;
+    my ($self, $idx) = @_;
 
     return +($idx == -1)
         ? $self->layers->by_position( @{$rewind_deck_2_hotspot->xy} )
@@ -190,14 +193,14 @@ sub _handle_mouse_button_up
         $dropped = 0;
         for my $idx (-1..6) {
 
-            my $layer = _calc_default_layer($idx);
+            my $layer = $self->_calc_default_layer($idx);
 
             my @stack = ($layer, @{$layer->ahead});
             
             $layer = pop @stack if scalar @stack;
             
             if( _is_layer_visible($layer) ) {
-                $dropped = _handle_layer($layer, \@stack);
+                $dropped = $self->_handle_layer($layer, \@stack);
             }
         }
     }
@@ -295,14 +298,14 @@ sub game
                 if(scalar @stack) {
                     # to empty field
                     if($stack[0]->data->{id} =~ m/empty_stack/
-                       && can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
+                       && $self->can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
                         @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
                         $dropped         = 1;
                     }
                     
                     # to face-up card
                     elsif($stack[0]->data->{visible}
-                       && can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
+                       && $self->can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
                         @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $space_between_stacks->y)};
                         $dropped         = 1;
                     }
@@ -310,7 +313,7 @@ sub game
                     if($dropped && scalar @position_before) {
                         $position_before[0] += $hotspot_offset; # transparent border
                         $position_before[1] += $hotspot_offset;
-                        show_card(@position_before);
+                        $self->show_card(@position_before);
                     }
                 }
 
@@ -332,7 +335,7 @@ sub game
                             $layer->attach($self->event->button_x, $self->event->button_y);
                             $layer->foreground;
                             $layer->detach_xy(@{$rewind_deck_2_position->xy});
-                            show_card($layer);
+                            $self->show_card($layer);
                         }
                     }
                     elsif($layer->data->{id} =~ m/rewind_deck/) {
@@ -344,7 +347,7 @@ sub game
                             $card->attach(@{$rewind_deck_2_hotspot->xy});
                             $card->foreground;
                             $card->detach_xy(@{$rewind_deck_1_position->xy});
-                            hide_card($rewind_deck_1_hotspot);
+                            $self->hide_card($rewind_deck_1_hotspot);
                         }
                     }
                 }
@@ -364,11 +367,11 @@ sub game
                     $left_target_hotspot->x + 11 * int($layer->data->{id} / 13), $left_target_hotspot->y
                 );
 
-                if(can_drop($layer->data->{id}, $target->data->{id})) {
+                if($self->can_drop($layer->data->{id}, $target->data->{id})) {
                     $layer->attach($self->event->button_x, $self->event->button_y);
                     $layer->foreground;
                     $layer->detach_xy(_x($target), _y($target));
-                    show_card($self->event->button_x, $self->event->button_y);
+                    $self->show_card($self->event->button_x, $self->event->button_y);
                 }
             }
         },
@@ -407,6 +410,8 @@ sub _is_card_an_ace {
 }
 
 sub can_drop {
+    my $self = shift;
+
     my $card       = shift;
     my $card_color = int($card / 13);
     my $target     = shift;
@@ -450,7 +455,10 @@ sub can_drop {
 }
 
 sub hide_card {
+    my $self = shift;
+
     my $xy = shift;
+
     my $layer = $self->layers->by_position(@{$xy->xy});
 
     if($layer
@@ -462,6 +470,8 @@ sub hide_card {
 }
 
 sub show_card {
+    my $self = shift;
+
     my $layer = (scalar @_ == 2) ? $self->layers->by_position(@_) : shift;
 
     if($layer
@@ -554,3 +564,7 @@ sub fisher_yates_shuffle
     }
     return @$array;
 }
+
+my $self = Games::Cards::Solitaire::SDL->new;
+$self->play();
+
