@@ -2,6 +2,11 @@
 
 package Games::Cards::Solitaire::SDL;
 
+use Class::XSAccessor {
+    constructor => 'new',
+    accessors => [qw(display)],
+};
+
 use strict;
 use warnings;
 use Time::HiRes;
@@ -27,9 +32,11 @@ SDL::init(SDL_INIT_VIDEO);
 my $WINDOW_WIDTH  = 800;
 my $WINDOW_HEIGHT = 600;
 
-my $display      = SDL::Video::set_video_mode(
+my $self = Games::Cards::Solitaire::SDL->new;
+
+$self->display(scalar (SDL::Video::set_video_mode(
     $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
-); # SDL_DOUBLEBUF
+))); # SDL_DOUBLEBUF
 
 my $NUM_RANKS_IN_SUITS = 13;
 my $layers       = SDLx::LayerManager->new();
@@ -53,8 +60,8 @@ my $hotspot_offset         = 20;
 
 init_background();
 init_cards();
-my @rects = @{$layers->blit($display)};
-SDL::Video::update_rects($display, @rects) if scalar @rects;
+my @rects = @{$layers->blit($self->display)};
+SDL::Video::update_rects($self->display, @rects) if scalar @rects;
 game();
 
 sub _x
@@ -123,9 +130,9 @@ sub _handle_layer {
             $layer->pos(
                 _x($layer) + $step_x, _y($layer) + $step_y
             );
-            $layers->blit($display);
-            #SDL::Video::update_rect($display, $x, $y, $w, $h);
-            SDL::Video::update_rect($display, 0, 0, 0, 0);
+            $layers->blit($self->display);
+            #SDL::Video::update_rect($self->display, $x, $y, $w, $h);
+            SDL::Video::update_rect($self->display, 0, 0, 0, 0);
             $fps->delay;
 
             $dist = $calc_dist->();
@@ -228,7 +235,7 @@ sub event_loop
                     }
                 }
 
-                SDL::Video::save_BMP($display, sprintf("Shot%04d.bmp", $screen_shot_index ));
+                SDL::Video::save_BMP($self->display, sprintf("Shot%04d.bmp", $screen_shot_index ));
             }
             elsif($event->key_sym == SDLK_ESCAPE) {
                 $handler->{on_quit}->();
@@ -353,8 +360,8 @@ sub game
     
     while($loop) {
         event_loop($handler);
-        @rects = @{$layers->blit($display)};
-        SDL::Video::update_rect($display, 0, 0, 0, 0);# if scalar @rects;
+        @rects = @{$layers->blit($self->display)};
+        SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
         $fps->delay;
     }
 }
