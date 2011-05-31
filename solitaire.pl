@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-package Games::Solitaire;
+package Games::Cards::Solitaire::SDL;
 
 use strict;
 use warnings;
