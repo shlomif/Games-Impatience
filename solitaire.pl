@@ -137,8 +137,9 @@ sub _handle_layer {
 
         return 1;
     }
-
-    return 0;
+    else {
+        return;
+    }
 }
 
 sub _handle_mouse_button_up
