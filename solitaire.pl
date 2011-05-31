@@ -60,6 +60,7 @@ sub new
     $self->_points(+{});
 
     $self->_add_point('rewind_deck_1_position', { x => 20,   y => 20,  });
+    $self->_add_point('rewind_deck_1_hotspot',  { x => 40,   y => 40,  });
 
     return $self;
 }
@@ -70,18 +71,24 @@ sub _add_point {
     $self->_points->{$name} = SDLx::Point2D->new(%$xy);
 }
 
-sub _point_xy {
+sub _point {
     my ($self, $name) = @_;
 
     if (! exists($self->_points->{$name})) {
         Carp::confess "Unknown Point of name '$name'!";
     }
-    return $self->_points->{$name}->xy;
+
+    return $self->_points->{$name};
+}
+
+sub _point_xy {
+    my ($self, $name) = @_;
+
+    return $self->_point($name)->xy;
 }
 
 my $NUM_RANKS_IN_SUITS = 13;
 
-my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40,  );
 my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
 my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
 my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
@@ -369,7 +376,7 @@ sub game
                             $card->attach(@{$rewind_deck_2_hotspot->xy});
                             $card->foreground;
                             $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
-                            $self->hide_card($rewind_deck_1_hotspot);
+                            $self->hide_card($self->_point('rewind_deck_1_hotspot'));
                         }
                     }
                 }
