@@ -73,8 +73,11 @@ my $hotspot_offset         = 20;
 
 $self->init_background();
 $self->init_cards();
-my @rects = @{$self->layers->blit($self->display)};
-SDL::Video::update_rects($self->display, @rects) if scalar @rects;
+
+if ( my @rects = @{$self->layers->blit($self->display)} ) {
+    SDL::Video::update_rects($self->display, @rects);
+}
+
 $self->game();
 
 sub _x
@@ -378,7 +381,7 @@ sub game
     while($self->loop) {
         $self->event_loop($handler);
         $self->layers->blit($self->display);
-        SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
+        SDL::Video::update_rect($self->display, 0, 0, 0, 0);
         $self->fps->delay;
     }
 }
