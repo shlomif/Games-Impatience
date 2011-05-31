@@ -555,15 +555,16 @@ sub init_cards {
 
     my $stack_index    = 0;
     my $stack_position = 0;
-    my @card_value     = fisher_yates_shuffle([0..51]);
+    my $card_values = fisher_yates_shuffle([0..51]);
 
-    for my $card (0 .. 51)
+    my $card_idx = 0;
+    while ( my $card_value = shift(@$card_values) )
     {
         my $image   = 'data/card_back.png';
         my $visible = 0;
         my ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
         
-        if($card < 28)
+        if($card_idx < 28)
         {
             if($stack_position > $stack_index)
             {
@@ -572,7 +573,7 @@ sub init_cards {
             }
             if($stack_position == $stack_index)
             {
-                $image   = 'data/card_' . $card_value[$card] . '.png';
+                $image   = "data/card_$card_value.png";
                 $visible = 1;
             }
             $x = $self->_point_x('left_stack_position') + $self->_point_x('space_between_stacks') * $stack_index;
@@ -584,22 +585,31 @@ sub init_cards {
             SDLx::Layer->new(
                 SDL::Image::load($image), 
                 $x, $y, 
-                {id => $card_value[$card], visible => $visible}
+                {id => $card_value, visible => $visible}
             )
         );
+    }
+    continue
+    {
+        $card_idx++;
     }
 }
 
 sub fisher_yates_shuffle
 {
     my $array = shift;
+
     my $i;
+
     for ($i = @$array; --$i; ) {
         my $j = int rand ($i+1);
+
         next if $i == $j;
+
         @$array[$i,$j] = @$array[$j,$i];
     }
-    return @$array;
+
+    return $array;
 }
 
 1;
