@@ -59,7 +59,7 @@ my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
 my $hotspot_offset         = 20;
 
 $self->init_background();
-init_cards();
+$self->init_cards();
 my @rects = @{$layers->blit($self->display)};
 SDL::Video::update_rects($self->display, @rects) if scalar @rects;
 game();
@@ -485,6 +485,8 @@ sub init_background {
 }
 
 sub init_cards {
+    my $self = shift;
+
     my $stack_index    = 0;
     my $stack_position = 0;
     my @card_value     = fisher_yates_shuffle([0..51]);
