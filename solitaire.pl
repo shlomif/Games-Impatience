@@ -7,7 +7,7 @@ use warnings;
 
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event fps last_click layers loop)],
+    accessors => [qw(display event fps last_click layers left_mouse_down loop)],
 };
 
 use Time::HiRes;
@@ -59,7 +59,6 @@ sub new
 }
 
 my $NUM_RANKS_IN_SUITS = 13;
-my $left_mouse_down = 0;
 
 my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20,  );
 my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40,  y => 40,  );
@@ -180,7 +179,7 @@ sub _handle_mouse_button_up
 {
     my ($self, $handler) = @_;
 
-    $left_mouse_down = 0 if $self->event->button_button == SDL_BUTTON_LEFT;
+    $self->left_mouse_down(0) if $self->event->button_button == SDL_BUTTON_LEFT;
     $handler->{on_drop}->();
 
     my $dropped = 1;
@@ -213,7 +212,7 @@ sub event_loop
         my $type = $self->event->type;
 
         if ($type == SDL_MOUSEBUTTONDOWN) {
-            $left_mouse_down = 1 if $self->event->button_button == SDL_BUTTON_LEFT;
+            $self->left_mouse_down(1) if $self->event->button_button == SDL_BUTTON_LEFT;
             my $time = Time::HiRes::time;
             if ($time - $self->last_click >= 0.3) {
                 $handler->{on_click}->();
@@ -224,7 +223,7 @@ sub event_loop
             $self->last_click($time);
         }
         elsif ($type == SDL_MOUSEMOTION) {
-            if ($left_mouse_down) {
+            if ($self->left_mouse_down) {
                 $handler->{on_drag}->();
             }
             else {
