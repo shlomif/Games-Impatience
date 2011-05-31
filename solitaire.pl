@@ -482,8 +482,6 @@ sub show_card {
     }
 }
 
-my @layers_;
-
 sub init_background {
 
     my $self = shift;
