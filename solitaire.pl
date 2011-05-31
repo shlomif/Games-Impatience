@@ -58,7 +58,7 @@ my $left_target_hotspot    = SDLx::Point2D->new( x => 370, y => 40,  );
 my $space_between_stacks   = SDLx::Point2D->new( x => 110, y => 20,  );
 my $hotspot_offset         = 20;
 
-init_background();
+$self->init_background();
 init_cards();
 my @rects = @{$layers->blit($self->display)};
 SDL::Video::update_rects($self->display, @rects) if scalar @rects;
@@ -453,7 +453,11 @@ sub show_card {
 }
 
 my @layers_;
+
 sub init_background {
+
+    my $self = shift;
+
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_2_position->xy}, {id => 'empty_deck'}));
