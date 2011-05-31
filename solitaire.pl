@@ -7,7 +7,7 @@ use warnings;
 
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event layers loop)],
+    accessors => [qw(display event last_click layers loop)],
 };
 
 use Time::HiRes;
@@ -47,6 +47,7 @@ sub new
 
     $self->loop(1);
 
+    $self->last_click(Time::HiRes::time);
     return $self;
 }
 
@@ -56,7 +57,6 @@ $self->layers( SDLx::LayerManager->new() );
 
 $self->event( SDL::Event->new() );
 
-my $last_click   = Time::HiRes::time;
 my $fps          = SDLx::FPS->new(fps => 60);
 my @selected_cards = ();
 my $left_mouse_down = 0;
@@ -215,13 +215,13 @@ sub event_loop
         if ($type == SDL_MOUSEBUTTONDOWN) {
             $left_mouse_down = 1 if $self->event->button_button == SDL_BUTTON_LEFT;
             my $time = Time::HiRes::time;
-            if ($time - $last_click >= 0.3) {
+            if ($time - $self->last_click >= 0.3) {
                 $handler->{on_click}->();
             }
             else {
                 $handler->{on_dblclick}->();
             }
-            $last_click = $time;
+            $self->last_click($time);
         }
         elsif ($type == SDL_MOUSEMOTION) {
             if ($left_mouse_down) {
@@ -349,7 +349,7 @@ sub game
             }
         },
         on_dblclick => sub {
-            $last_click = 0;
+            $self->last_click(0);
             $self->layers->detach_back;
 
             my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
