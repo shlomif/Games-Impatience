@@ -46,7 +46,7 @@ my $rewind_deck_2_position = SDLx::Point2D->new( x => 130, y => 20,  );
 my $rewind_deck_2_hotspot  = SDLx::Point2D->new( x => 150, y => 40,  );
 my $left_stack_position    = SDLx::Point2D->new( x => 20,  y => 200, );
 my $left_stack_hotspot     = SDLx::Point2D->new( x => 40,  y => 220, );
-my @left_target_position   = ( 350,  20);
+my $left_target_position   = SDLx::Point2D->new( x => 350, y => 20,  );
 my @left_target_hotspot    = ( 370,  40);
 my @space_between_stacks   = ( 110,  20);
 my $hotspot_offset         = 20;
@@ -455,8 +455,8 @@ sub init_background {
         $layers->add(
             SDLx::Layer->new(
                 SDL::Image::load('data/empty_target_' . $idx . '.png'),
-                $left_target_position[0] + $space_between_stacks[0] * $idx,
-                $left_target_position[1],
+                $left_target_position->x + $space_between_stacks[0] * $idx,
+                $left_target_position->y,
                 {id => 'empty_target_' . $idx}
             )
         );
