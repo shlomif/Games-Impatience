@@ -4,7 +4,7 @@ package Games::Cards::Solitaire::SDL;
 
 use Class::XSAccessor {
     constructor => 'new',
-    accessors => [qw(display layers)],
+    accessors => [qw(display event layers)],
 };
 
 use strict;
@@ -39,8 +39,11 @@ $self->display(scalar (SDL::Video::set_video_mode(
 ))); # SDL_DOUBLEBUF
 
 my $NUM_RANKS_IN_SUITS = 13;
-$self->layers(SDLx::LayerManager->new());
-my $event        = SDL::Event->new();
+
+$self->layers( SDLx::LayerManager->new() );
+
+$self->event( SDL::Event->new() );
+
 my $loop         = 1;
 my $last_click   = Time::HiRes::time;
 my $fps          = SDLx::FPS->new(fps => 60);
@@ -99,7 +102,7 @@ sub _handle_layer {
 
     if(can_drop($layer->data->{id}, $target->data->{id})) {
 
-        $layer->attach($event->button_x, $event->button_y);
+        $layer->attach($self->event->button_x, $self->event->button_y);
         $layer->foreground;
 
         my $square = sub { my $n = shift; return $n*$n; };
@@ -166,7 +169,7 @@ sub _handle_mouse_button_up
 {
     my ($handler) = @_;
 
-    $left_mouse_down = 0 if $event->button_button == SDL_BUTTON_LEFT;
+    $left_mouse_down = 0 if $self->event->button_button == SDL_BUTTON_LEFT;
     $handler->{on_drop}->();
 
     my $dropped = 1;
@@ -192,12 +195,12 @@ sub event_loop
     my $handler = shift;
     
     SDL::Events::pump_events();
-    while(SDL::Events::poll_event($event))
+    while(SDL::Events::poll_event($self->event))
     {
-        my $type = $event->type;
+        my $type = $self->event->type;
 
         if ($type == SDL_MOUSEBUTTONDOWN) {
-            $left_mouse_down = 1 if $event->button_button == SDL_BUTTON_LEFT;
+            $left_mouse_down = 1 if $self->event->button_button == SDL_BUTTON_LEFT;
             my $time = Time::HiRes::time;
             if ($time - $last_click >= 0.3) {
                 $handler->{on_click}->();
@@ -219,7 +222,7 @@ sub event_loop
             _handle_mouse_button_up($handler);
         }
         elsif ($type == SDL_KEYDOWN) {
-            if($event->key_sym == SDLK_PRINT) {
+            if($self->event->key_sym == SDLK_PRINT) {
 
                 my $screen_shot_index = 1;
 
@@ -237,7 +240,7 @@ sub event_loop
 
                 SDL::Video::save_BMP($self->display, sprintf("Shot%04d.bmp", $screen_shot_index ));
             }
-            elsif($event->key_sym == SDLK_ESCAPE) {
+            elsif($self->event->key_sym == SDLK_ESCAPE) {
                 $handler->{on_quit}->();
             }
             $handler->{on_keydown}->();
@@ -300,16 +303,16 @@ sub game
         },
         on_click => sub {
             unless(scalar @selected_cards) {
-                my $layer = $self->layers->by_position($event->button_x, $event->button_y);
+                my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
                 
                 if(defined $layer) {
                     if($layer->data->{id} =~ m/^\d+$/) {
                         if($layer->data->{visible}) {
                             @selected_cards = ($layer, @{$layer->ahead});
-                            $self->layers->attach(@selected_cards, $event->button_x, $event->button_y);
+                            $self->layers->attach(@selected_cards, $self->event->button_x, $self->event->button_y);
                         }
                         elsif(!scalar @{$layer->ahead}) {
-                            $layer->attach($event->button_x, $event->button_y);
+                            $layer->attach($self->event->button_x, $self->event->button_y);
                             $layer->foreground;
                             $layer->detach_xy(@{$rewind_deck_2_position->xy});
                             show_card($layer);
@@ -334,7 +337,7 @@ sub game
             $last_click = 0;
             $self->layers->detach_back;
 
-            my $layer  = $self->layers->by_position($event->button_x, $event->button_y);
+            my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
 
             if(defined $layer
             && !scalar @{$layer->ahead}
@@ -345,10 +348,10 @@ sub game
                 );
 
                 if(can_drop($layer->data->{id}, $target->data->{id})) {
-                    $layer->attach($event->button_x, $event->button_y);
+                    $layer->attach($self->event->button_x, $self->event->button_y);
                     $layer->foreground;
                     $layer->detach_xy(_x($target), _y($target));
-                    show_card($event->button_x, $event->button_y);
+                    show_card($self->event->button_x, $self->event->button_y);
                 }
             }
         },
