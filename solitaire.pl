@@ -6,8 +6,8 @@ use strict;
 use warnings;
 
 use Class::XSAccessor {
-    constructor => 'new',
-    accessors => [qw(display event layers)],
+    constructor => '_create_empty_new',
+    accessors => [qw(display event layers loop)],
 };
 
 use Time::HiRes;
@@ -35,9 +35,20 @@ my $WINDOW_HEIGHT = 600;
 
 my $self = Games::Cards::Solitaire::SDL->new;
 
-$self->display(scalar (SDL::Video::set_video_mode(
-    $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
-))); # SDL_DOUBLEBUF
+sub new
+{
+    my $class = shift;
+
+    my $self = $class->_create_empty_new(@_);
+
+    $self->display(scalar (SDL::Video::set_video_mode(
+                $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
+            ))); # SDL_DOUBLEBUF
+
+    $self->loop(1);
+
+    return $self;
+}
 
 my $NUM_RANKS_IN_SUITS = 13;
 
@@ -45,7 +56,6 @@ $self->layers( SDLx::LayerManager->new() );
 
 $self->event( SDL::Event->new() );
 
-my $loop         = 1;
 my $last_click   = Time::HiRes::time;
 my $fps          = SDLx::FPS->new(fps => 60);
 my @selected_cards = ();
@@ -264,7 +274,7 @@ sub game
     my $handler =
     {
         on_quit    => sub {
-            $loop = 0;
+            $self->loop(0);
         },
         on_drag => sub {
         },
@@ -366,7 +376,7 @@ sub game
         },
     };
     
-    while($loop) {
+    while($self->loop) {
         $self->event_loop($handler);
         @rects = @{$self->layers->blit($self->display)};
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
