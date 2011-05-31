@@ -59,7 +59,6 @@ sub new
 }
 
 my $NUM_RANKS_IN_SUITS = 13;
-my @selected_cards = ();
 my $left_mouse_down = 0;
 
 my $rewind_deck_1_position = SDLx::Point2D->new( x => 20,  y => 20,  );
