@@ -259,9 +259,8 @@ sub game
             # @selected_cards contains whatever set
             # of cards the player is moving around
             if(scalar @selected_cards) {
-                my @selected_cards_ = ();
-                push(@selected_cards_, $_->foreground) for @selected_cards;
-                
+                my @selected_cards_ = (map { $_->foreground } @selected_cards);
+
                 my @stack           = scalar @selected_cards_
                                     ? @{$selected_cards[0]->behind}
                                     : ();
@@ -453,28 +452,39 @@ sub init_background {
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
     $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @rewind_deck_2_position, {id => 'empty_deck'}));
     
-    $layers->add(
-        SDLx::Layer->new(SDL::Image::load('data/empty_target_' . $_ . '.png'),
-        $left_target_position[0] + $space_between_stacks[0] * $_, $left_target_position[1],
-        {id => 'empty_target_' . $_})) for(0..3);
-        
-    $layers->add(
-        SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
-        $left_stack_position[0]  + $space_between_stacks[0] * $_, $left_stack_position[1],
-        {id => 'empty_stack'}))        for(0..6);
+    foreach my $idx (0 .. 3) {
+        $layers->add(
+            SDLx::Layer->new(
+                SDL::Image::load('data/empty_target_' . $idx . '.png'),
+                $left_target_position[0] + $space_between_stacks[0] * $idx,
+                $left_target_position[1],
+                {id => 'empty_target_' . $idx}
+            )
+        );
+    }
+     
+    for my $idx (0 .. 6)
+    {
+        $layers->add(
+            SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
+                $left_stack_position[0]  + $space_between_stacks[0] * $idx, $left_stack_position[1],
+                {id => 'empty_stack'}
+            )
+        );
+    }
 }
 
 sub init_cards {
     my $stack_index    = 0;
     my $stack_position = 0;
     my @card_value     = fisher_yates_shuffle([0..51]);
-    for(0..51)
+    for my $card (0..51)
     {
         my $image   = 'data/card_back.png';
         my $visible = 0;
         my ($x, $y) = @{$rewind_deck_1_position->xy};
         
-        if($_ < 28)
+        if($card < 28)
         {
             if($stack_position > $stack_index)
             {
@@ -483,7 +493,7 @@ sub init_cards {
             }
             if($stack_position == $stack_index)
             {
-                $image   = 'data/card_' . $card_value[$_] . '.png';
+                $image   = 'data/card_' . $card_value[$card] . '.png';
                 $visible = 1;
             }
             $x = $left_stack_position[0] + $space_between_stacks[0] * $stack_index;
@@ -491,7 +501,13 @@ sub init_cards {
             $stack_position++;
         }
         
-        $layers->add(SDLx::Layer->new(SDL::Image::load($image), $x, $y, {id => $card_value[$_], visible => $visible}));
+        $layers->add(
+            SDLx::Layer->new(
+                SDL::Image::load($image), 
+                $x, $y, 
+                {id => $card_value[$card], visible => $visible}
+            )
+        );
     }
 }
 
