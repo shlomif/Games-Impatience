@@ -4,7 +4,7 @@ package Games::Cards::Solitaire::SDL;
 
 use Class::XSAccessor {
     constructor => 'new',
-    accessors => [qw(display)],
+    accessors => [qw(display layers)],
 };
 
 use strict;
@@ -39,7 +39,7 @@ $self->display(scalar (SDL::Video::set_video_mode(
 ))); # SDL_DOUBLEBUF
 
 my $NUM_RANKS_IN_SUITS = 13;
-my $layers       = SDLx::LayerManager->new();
+$self->layers(SDLx::LayerManager->new());
 my $event        = SDL::Event->new();
 my $loop         = 1;
 my $last_click   = Time::HiRes::time;
@@ -60,7 +60,7 @@ my $hotspot_offset         = 20;
 
 $self->init_background();
 $self->init_cards();
-my @rects = @{$layers->blit($self->display)};
+my @rects = @{$self->layers->blit($self->display)};
 SDL::Video::update_rects($self->display, @rects) if scalar @rects;
 game();
 
@@ -93,7 +93,7 @@ sub _is_layer_visible {
 sub _handle_layer {
     my ($layer, $stack_ref) = @_;
 
-    my $target = $layers->by_position(
+    my $target = $self->layers->by_position(
         $left_target_hotspot->x + $space_between_stacks->x * int($layer->data->{id} / 13), $left_target_hotspot->y
     );
 
@@ -130,7 +130,7 @@ sub _handle_layer {
             $layer->pos(
                 _x($layer) + $step_x, _y($layer) + $step_y
             );
-            $layers->blit($self->display);
+            $self->layers->blit($self->display);
             #SDL::Video::update_rect($self->display, $x, $y, $w, $h);
             SDL::Video::update_rect($self->display, 0, 0, 0, 0);
             $fps->delay;
@@ -155,8 +155,8 @@ sub _calc_default_layer {
     my ($idx) = @_;
 
     return +($idx == -1)
-        ? $layers->by_position( @{$rewind_deck_2_hotspot->xy} )
-        : $layers->by_position( 
+        ? $self->layers->by_position( @{$rewind_deck_2_hotspot->xy} )
+        : $self->layers->by_position( 
             $left_stack_hotspot->x + $space_between_stacks->x * $idx, 
             $left_stack_hotspot->y 
         );
@@ -276,14 +276,14 @@ sub game
                     # to empty field
                     if($stack[0]->data->{id} =~ m/empty_stack/
                        && can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
+                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
                         $dropped         = 1;
                     }
                     
                     # to face-up card
                     elsif($stack[0]->data->{visible}
                        && can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $space_between_stacks->y)};
+                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $space_between_stacks->y)};
                         $dropped         = 1;
                     }
                     
@@ -294,19 +294,19 @@ sub game
                     }
                 }
 
-                $layers->detach_back unless $dropped;
+                $self->layers->detach_back unless $dropped;
             }
             @selected_cards = ();
         },
         on_click => sub {
             unless(scalar @selected_cards) {
-                my $layer = $layers->by_position($event->button_x, $event->button_y);
+                my $layer = $self->layers->by_position($event->button_x, $event->button_y);
                 
                 if(defined $layer) {
                     if($layer->data->{id} =~ m/^\d+$/) {
                         if($layer->data->{visible}) {
                             @selected_cards = ($layer, @{$layer->ahead});
-                            $layers->attach(@selected_cards, $event->button_x, $event->button_y);
+                            $self->layers->attach(@selected_cards, $event->button_x, $event->button_y);
                         }
                         elsif(!scalar @{$layer->ahead}) {
                             $layer->attach($event->button_x, $event->button_y);
@@ -316,7 +316,7 @@ sub game
                         }
                     }
                     elsif($layer->data->{id} =~ m/rewind_deck/) {
-                        $layer = $layers->by_position(@{$rewind_deck_2_hotspot->xy});
+                        $layer = $self->layers->by_position(@{$rewind_deck_2_hotspot->xy});
                         my @cards = ($layer, @{$layer->behind});
                         pop @cards;
                         pop @cards;
@@ -332,15 +332,15 @@ sub game
         },
         on_dblclick => sub {
             $last_click = 0;
-            $layers->detach_back;
+            $self->layers->detach_back;
 
-            my $layer  = $layers->by_position($event->button_x, $event->button_y);
+            my $layer  = $self->layers->by_position($event->button_x, $event->button_y);
 
             if(defined $layer
             && !scalar @{$layer->ahead}
             && $layer->data->{id} =~ m/\d+/
             && $layer->data->{visible}) {
-                my $target = $layers->by_position(
+                my $target = $self->layers->by_position(
                     $left_target_hotspot->x + 11 * int($layer->data->{id} / 13), $left_target_hotspot->y
                 );
 
@@ -360,7 +360,7 @@ sub game
     
     while($loop) {
         event_loop($handler);
-        @rects = @{$layers->blit($self->display)};
+        @rects = @{$self->layers->blit($self->display)};
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);# if scalar @rects;
         $fps->delay;
     }
@@ -390,10 +390,10 @@ sub can_drop {
     my $card       = shift;
     my $card_color = int($card / 13);
     my $target     = shift;
-    my $stack      = $layers->by_position($left_target_hotspot->x + $space_between_stacks->x * $card_color, $left_target_hotspot->y);
+    my $stack      = $self->layers->by_position($left_target_hotspot->x + $space_between_stacks->x * $card_color, $left_target_hotspot->y);
     
-    #my @stack = $layers->get_layers_behind_layer($stack);
-    #my @stack = $layers->get_layers_ahead_layer($stack);
+    #my @stack = $self->layers->get_layers_behind_layer($stack);
+    #my @stack = $self->layers->get_layers_ahead_layer($stack);
 
     # Kings can be put on empty fields.
     if (_is_card_a_king($card)) {
@@ -431,7 +431,7 @@ sub can_drop {
 
 sub hide_card {
     my $xy = shift;
-    my $layer = $layers->by_position(@{$xy->xy});
+    my $layer = $self->layers->by_position(@{$xy->xy});
 
     if($layer
     && $layer->data->{id} =~ m/\d+/
@@ -442,7 +442,7 @@ sub hide_card {
 }
 
 sub show_card {
-    my $layer = (scalar @_ == 2) ? $layers->by_position(@_) : shift;
+    my $layer = (scalar @_ == 2) ? $self->layers->by_position(@_) : shift;
 
     if($layer
     && $layer->data->{id} =~ m/\d+/
@@ -458,12 +458,12 @@ sub init_background {
 
     my $self = shift;
 
-    $layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
-    $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
-    $layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_2_position->xy}, {id => 'empty_deck'}));
+    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/background.png'),                           {id => 'background'}));
+    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_1_position->xy}, {id => 'rewind_deck'}));
+    $self->layers->add(SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'), @{$rewind_deck_2_position->xy}, {id => 'empty_deck'}));
     
     foreach my $idx (0 .. 3) {
-        $layers->add(
+        $self->layers->add(
             SDLx::Layer->new(
                 SDL::Image::load('data/empty_target_' . $idx . '.png'),
                 $left_target_position->x + $space_between_stacks->x * $idx,
@@ -475,7 +475,7 @@ sub init_background {
      
     for my $idx (0 .. 6)
     {
-        $layers->add(
+        $self->layers->add(
             SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
                 $left_stack_position->x  + $space_between_stacks->x * $idx, $left_stack_position->y,
                 {id => 'empty_stack'}
@@ -513,7 +513,7 @@ sub init_cards {
             $stack_position++;
         }
         
-        $layers->add(
+        $self->layers->add(
             SDLx::Layer->new(
                 SDL::Image::load($image), 
                 $x, $y, 
