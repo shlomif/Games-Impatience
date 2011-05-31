@@ -65,7 +65,7 @@ $self->init_background();
 $self->init_cards();
 my @rects = @{$self->layers->blit($self->display)};
 SDL::Video::update_rects($self->display, @rects) if scalar @rects;
-game();
+$self->game();
 
 sub _x
 {
@@ -167,7 +167,7 @@ sub _calc_default_layer {
 
 sub _handle_mouse_button_up
 {
-    my ($handler) = @_;
+    my ($self, $handler) = @_;
 
     $left_mouse_down = 0 if $self->event->button_button == SDL_BUTTON_LEFT;
     $handler->{on_drop}->();
@@ -219,7 +219,7 @@ sub event_loop
             }
         }
         elsif ($type == SDL_MOUSEBUTTONUP) {
-            _handle_mouse_button_up($handler);
+            $self->_handle_mouse_button_up($handler);
         }
         elsif ($type == SDL_KEYDOWN) {
             if($self->event->key_sym == SDLK_PRINT) {
@@ -253,6 +253,8 @@ sub event_loop
 
 sub game
 {
+    my $self = shift;
+
     my @selected_cards = ();
     my $x = 0;
     my $y = 0;
