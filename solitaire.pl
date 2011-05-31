@@ -319,7 +319,7 @@ sub game
                             $card->attach(@rewind_deck_2_hotspot);
                             $card->foreground;
                             $card->detach_xy(@{$rewind_deck_1_position->xy});
-                            hide_card(@{$rewind_deck_1_hotspot->xy});
+                            hide_card($rewind_deck_1_hotspot);
                         }
                     }
                 }
@@ -425,7 +425,8 @@ sub can_drop {
 }
 
 sub hide_card {
-    my $layer = (scalar @_ == 2) ? $layers->by_position(@_) : shift;
+    my $xy = shift;
+    my $layer = $layers->by_position(@{$xy->xy});
 
     if($layer
     && $layer->data->{id} =~ m/\d+/
