@@ -2,13 +2,14 @@
 
 package Games::Cards::Solitaire::SDL;
 
+use strict;
+use warnings;
+
 use Class::XSAccessor {
     constructor => 'new',
     accessors => [qw(display event layers)],
 };
 
-use strict;
-use warnings;
 use Time::HiRes;
 
 use SDL;
