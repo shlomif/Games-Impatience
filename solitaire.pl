@@ -42,7 +42,8 @@ my $left_mouse_down = 0;
 
 my $rewind_deck_1_position = SDLx::Point2D->new( x => 20, y => 20, );
 
-my @rewind_deck_1_hotspot  = (  40,  40);
+my $rewind_deck_1_hotspot  = SDLx::Point2D->new( x => 40, y => 40, );
+
 my @rewind_deck_2_position = ( 130,  20);
 my @rewind_deck_2_hotspot  = ( 150,  40);
 my @left_stack_position    = (  20, 200);
@@ -319,7 +320,7 @@ sub game
                             $_->attach(@rewind_deck_2_hotspot);
                             $_->foreground;
                             $_->detach_xy(@{$rewind_deck_1_position->xy});
-                            hide_card(@rewind_deck_1_hotspot);
+                            hide_card(@{$rewind_deck_1_hotspot->xy});
                         }
                     }
                 }
