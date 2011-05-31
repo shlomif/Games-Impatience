@@ -30,6 +30,7 @@ my $display      = SDL::Video::set_video_mode(
     $WINDOW_WIDTH, $WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_HWACCEL
 ); # SDL_DOUBLEBUF
 
+my $NUM_RANKS_IN_SUITS = 13;
 my $layers       = SDLx::LayerManager->new();
 my $event        = SDL::Event->new();
 my $loop         = 1;
@@ -47,7 +48,6 @@ my @left_target_position   = ( 350,  20);
 my @left_target_hotspot    = ( 370,  40);
 my @space_between_stacks   = ( 110,  20);
 my $hotspot_offset         = 20;
-my %KING_CARDS             = (map { $_ => 1 } (12,25,38,51));
 
 init_background();
 init_cards();
@@ -323,8 +323,25 @@ sub game
     }
 }
 
-my %KING_CARDS = (map { $_ => 1 } (12,25,38,51));
-my %ACES_CARDS = (map { ($_*13) => 1 } (0 .. 3));
+
+sub _get_card_rank
+{
+    my ($card) = @_;
+
+    return ($card % $NUM_RANKS_IN_SUITS);
+}
+
+sub _is_card_a_king {
+    my ($card) = @_;
+
+    return (_get_card_rank($card) == ($NUM_RANKS_IN_SUITS - 1));
+}
+
+sub _is_card_an_ace {
+    my ($card) = @_;
+
+    return (_get_card_rank($card) == 0);
+}
 
 sub can_drop {
     my $card       = shift;
@@ -336,12 +353,12 @@ sub can_drop {
     #my @stack = $layers->get_layers_ahead_layer($stack);
 
     # Kings can be put on empty fields.
-    if (exists($KING_CARDS{$card})) {
+    if (_is_card_a_king($card)) {
         return 1 if $target =~ m/empty_stack/;
     }
     
     # Aces can be put on empty field (at upper right)
-    if(    exists($ACES_CARDS{$card}) 
+    if( _is_card_an_ace($card) 
         && $target =~ m/empty_target_\Q$card_color\E/) {
         return 1;
     }
