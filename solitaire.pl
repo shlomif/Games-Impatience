@@ -81,6 +81,66 @@ sub _is_layer_visible {
     );
 }
 
+sub _handle_layer {
+    my ($layer, $stack_ref) = @_;
+
+    my $target = $layers->by_position(
+        $left_target_hotspot[0] + $space_between_stacks[0] * int($layer->data->{id} / 13), $left_target_hotspot[1]
+    );
+
+    if(can_drop($layer->data->{id}, $target->data->{id})) {
+
+        $layer->attach($event->button_x, $event->button_y);
+        $layer->foreground;
+
+        my $square = sub { my $n = shift; return $n*$n; };
+
+        my $calc_dx = sub {
+            return ( _x($target) - _x($layer) ); 
+        };
+        my $calc_dy = sub { 
+            return ( _y($target) - _y($layer) ); 
+        };
+
+        my $calc_dist = sub {
+            return sqrt(
+                $square->($calc_dx->()) + $square->($calc_dy->())
+            );
+        };
+
+        my $dist  = 999;
+        my $steps = $calc_dist->() / 40;
+
+        my $step_x = $calc_dx->() / $steps;
+        my $step_y = $calc_dy->() / $steps;
+
+        while($dist > 40) {
+
+            #$w += $layer->clip->w - $x;
+            #$h += $layer->clip->h - $y;
+            $layer->pos(
+                _x($layer) + $step_x, _y($layer) + $step_y
+            );
+            $layers->blit($display);
+            #SDL::Video::update_rect($display, $x, $y, $w, $h);
+            SDL::Video::update_rect($display, 0, 0, 0, 0);
+            $fps->delay;
+
+            $dist = $calc_dist->();
+        }
+        $layer->detach_xy(_x($target), _y($target));
+
+        if (@$stack_ref)
+        {
+            show_card(pop @$stack_ref);
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
 sub _handle_mouse_button_up
 {
     my ($handler) = @_;
@@ -95,58 +155,13 @@ sub _handle_mouse_button_up
             my $layer = $_ == -1
                       ? $layers->by_position( @rewind_deck_2_hotspot )
                       : $layers->by_position( $left_stack_hotspot[0] + $space_between_stacks[0] * $_, $left_stack_hotspot[1] );
+
             my @stack = ($layer, @{$layer->ahead});
-               $layer = pop @stack if scalar @stack;
+            
+            $layer = pop @stack if scalar @stack;
             
             if( _is_layer_visible($layer) ) {
-                my $target = $layers->by_position(
-                    $left_target_hotspot[0] + $space_between_stacks[0] * int($layer->data->{id} / 13), $left_target_hotspot[1]
-                );
-
-                if(can_drop($layer->data->{id}, $target->data->{id})) {
-
-                    $layer->attach($event->button_x, $event->button_y);
-                    $layer->foreground;
-
-                    my $square = sub { my $n = shift; return $n*$n; };
-
-                    my $calc_dx = sub {
-                        return ( _x($target) - _x($layer) ); 
-                    };
-                    my $calc_dy = sub { 
-                        return ( _y($target) - _y($layer) ); 
-                    };
-
-                    my $calc_dist = sub {
-                        return sqrt(
-                            $square->($calc_dx->()) + $square->($calc_dy->())
-                        );
-                    };
-
-                    my $dist  = 999;
-                    my $steps = $calc_dist->() / 40;
-
-                    my $step_x = $calc_dx->() / $steps;
-                    my $step_y = $calc_dy->() / $steps;
-
-                    while($dist > 40) {
-                        
-                        #$w += $layer->clip->w - $x;
-                        #$h += $layer->clip->h - $y;
-                        $layer->pos(
-                            _x($layer) + $step_x, _y($layer) + $step_y
-                        );
-                        $layers->blit($display);
-                        #SDL::Video::update_rect($display, $x, $y, $w, $h);
-                        SDL::Video::update_rect($display, 0, 0, 0, 0);
-                        $fps->delay;
-                        
-                        $dist = $calc_dist->();
-                    }
-                    $layer->detach_xy(_x($target), _y($target));
-                    show_card(pop @stack) if scalar @stack;
-                    $dropped = 1;
-                }
+                $dropped = _handle_layer($layer, \@stack);
             }
         }
     }
