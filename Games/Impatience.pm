@@ -9,8 +9,8 @@ use Carp;
 
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event fps last_click layers left_mouse_down loop
-        _points selected_cards
+    accessors => [qw(display event fps _handler last_click layers
+        left_mouse_down loop _points selected_cards
     )],
 };
 
@@ -68,8 +68,120 @@ sub new
     $self->_add_point('rewind_deck_1_position', { x => 20,   y => 20,  });
     $self->_add_point('rewind_deck_1_hotspot',  { x => 40,   y => 40,  });
     $self->_add_point('rewind_deck_2_position', { x=> 130, y => 20, });    $self->_add_point('rewind_deck_2_hotspot', { x=> 150, y => 40, });    $self->_add_point('left_stack_position', { x=> 20, y => 200, });    $self->_add_point('left_stack_hotspot', { x=> 40, y => 220, });    $self->_add_point('left_target_position', { x=> 350, y => 20, });    $self->_add_point('left_target_hotspot', { x=> 370, y => 40, });    $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
+
+    $self->_handler($self->_calc_handler());
+
     # ADD_HERE_POINT
     return $self;
+}
+
+sub _calc_handler {
+    my $self = shift;
+
+    return
+    {
+        on_quit    => sub {
+            $self->loop(0);
+        },
+        on_drag => sub {
+        },
+        on_drop    => sub {
+            # @selected_cards contains whatever set
+            # of cards the player is moving around
+            if(@{$self->selected_cards}) {
+                my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
+
+                my @stack           = scalar @selected_cards_
+                                    ? @{$self->selected_cards->[0]->behind}
+                                    : ();
+                my $dropped         = 0;
+                my @position_before = ();
+                
+                if(scalar @stack) {
+                    # to empty field
+                    if($stack[0]->data->{id} =~ m/empty_stack/
+                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
+                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
+                        $dropped         = 1;
+                    }
+                    
+                    # to face-up card
+                    elsif($stack[0]->data->{visible}
+                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
+                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
+                        $dropped         = 1;
+                    }
+                    
+                    if($dropped && scalar @position_before) {
+                        $position_before[0] += $hotspot_offset; # transparent border
+                        $position_before[1] += $hotspot_offset;
+                        $self->show_card(@position_before);
+                    }
+                }
+
+                $self->layers->detach_back unless $dropped;
+            }
+            $self->selected_cards([]);
+        },
+        on_click => sub {
+            unless(@{$self->selected_cards}) {
+                my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
+                
+                if(defined $layer) {
+                    if($layer->data->{id} =~ m/^\d+$/) {
+                        if($layer->data->{visible}) {
+                            $self->selected_cards([$layer, @{$layer->ahead}]);
+                            $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
+                        }
+                        elsif(!scalar @{$layer->ahead}) {
+                            $layer->attach($self->event->button_x, $self->event->button_y);
+                            $layer->foreground;
+                            $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
+                            $self->show_card($layer);
+                        }
+                    }
+                    elsif($layer->data->{id} =~ m/rewind_deck/) {
+                        $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
+                        my @cards = ($layer, @{$layer->behind});
+                        pop @cards;
+                        pop @cards;
+                        foreach my $card (@cards) {
+                            $card->attach(@{$self->_point_xy('rewind_deck_2_hotspot')});
+                            $card->foreground;
+                            $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
+                            $self->hide_card($self->_point('rewind_deck_1_hotspot'));
+                        }
+                    }
+                }
+            }
+        },
+        on_dblclick => sub {
+            $self->last_click(0);
+            $self->layers->detach_back;
+
+            my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
+
+            if(defined $layer
+            && !scalar @{$layer->ahead}
+            && $layer->data->{id} =~ m/\d+/
+            && $layer->data->{visible}) {
+                my $target = $self->layers->by_position(
+                    $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
+                );
+
+                if($self->can_drop($layer->data->{id}, $target->data->{id})) {
+                    $layer->attach($self->event->button_x, $self->event->button_y);
+                    $layer->foreground;
+                    $layer->detach_xy(_x($target), _y($target));
+                    $self->show_card($self->event->button_x, $self->event->button_y);
+                }
+            }
+        },
+        on_mousemove => sub {
+        },
+        on_keydown => sub {
+        },
+    };
 }
 
 sub _add_point {
@@ -221,10 +333,10 @@ sub _calc_default_layer {
 
 sub _handle_mouse_button_up
 {
-    my ($self, $handler) = @_;
+    my ($self) = @_;
 
     $self->left_mouse_down(0) if $self->event->button_button == SDL_BUTTON_LEFT;
-    $handler->{on_drop}->();
+    $self->_handler->{on_drop}->();
 
     my $dropped = 1;
     while($dropped) {
@@ -245,17 +357,17 @@ sub _handle_mouse_button_up
 }
 
 sub _handle_mouse_button_down_event {
-    my ($self, $handler) = @_;
+    my ($self) = @_;
 
     $self->left_mouse_down(1) if $self->event->button_button == SDL_BUTTON_LEFT;
 
     my $time = Time::HiRes::time;
 
     if ($time - $self->last_click >= 0.3) {
-        $handler->{on_click}->();
+        $self->_handler->{on_click}->();
     }
     else {
-        $handler->{on_dblclick}->();
+        $self->_handler->{on_dblclick}->();
     }
 
     $self->last_click($time);
@@ -267,26 +379,24 @@ sub event_loop
 {
     my $self = shift;
 
-    my $handler = shift;
-    
     SDL::Events::pump_events();
     while(SDL::Events::poll_event($self->event))
     {
         my $type = $self->event->type;
 
         if ($type == SDL_MOUSEBUTTONDOWN) {
-            $self->_handle_mouse_button_down_event($handler);
+            $self->_handle_mouse_button_down_event;
         }
         elsif ($type == SDL_MOUSEMOTION) {
             if ($self->left_mouse_down) {
-                $handler->{on_drag}->();
+                $self->_handler->{on_drag}->();
             }
             else {
-                $handler->{on_mousemove}->();
+                $self->_handler->{on_mousemove}->();
             }
         }
         elsif ($type == SDL_MOUSEBUTTONUP) {
-            $self->_handle_mouse_button_up($handler);
+            $self->_handle_mouse_button_up($self->_handler);
         }
         elsif ($type == SDL_KEYDOWN) {
             if($self->event->key_sym == SDLK_PRINT) {
@@ -308,12 +418,12 @@ sub event_loop
                 SDL::Video::save_BMP($self->display, sprintf("Shot%04d.bmp", $screen_shot_index ));
             }
             elsif($self->event->key_sym == SDLK_ESCAPE) {
-                $handler->{on_quit}->();
+                $self->_handler->{on_quit}->();
             }
-            $handler->{on_keydown}->();
+            $self->_handler->{on_keydown}->();
         }
         elsif ($type == SDL_QUIT) {
-            $handler->{on_quit}->();
+            $self->_handler->{on_quit}->();
         }
     }
 }
@@ -323,114 +433,9 @@ sub game
     my $self = shift;
 
     $self->selected_cards([]);
-
-    my $handler =
-    {
-        on_quit    => sub {
-            $self->loop(0);
-        },
-        on_drag => sub {
-        },
-        on_drop    => sub {
-            # @selected_cards contains whatever set
-            # of cards the player is moving around
-            if(@{$self->selected_cards}) {
-                my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
-
-                my @stack           = scalar @selected_cards_
-                                    ? @{$self->selected_cards->[0]->behind}
-                                    : ();
-                my $dropped         = 0;
-                my @position_before = ();
-                
-                if(scalar @stack) {
-                    # to empty field
-                    if($stack[0]->data->{id} =~ m/empty_stack/
-                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
-                        $dropped         = 1;
-                    }
-                    
-                    # to face-up card
-                    elsif($stack[0]->data->{visible}
-                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
-                        $dropped         = 1;
-                    }
-                    
-                    if($dropped && scalar @position_before) {
-                        $position_before[0] += $hotspot_offset; # transparent border
-                        $position_before[1] += $hotspot_offset;
-                        $self->show_card(@position_before);
-                    }
-                }
-
-                $self->layers->detach_back unless $dropped;
-            }
-            $self->selected_cards([]);
-        },
-        on_click => sub {
-            unless(@{$self->selected_cards}) {
-                my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
-                
-                if(defined $layer) {
-                    if($layer->data->{id} =~ m/^\d+$/) {
-                        if($layer->data->{visible}) {
-                            $self->selected_cards([$layer, @{$layer->ahead}]);
-                            $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
-                        }
-                        elsif(!scalar @{$layer->ahead}) {
-                            $layer->attach($self->event->button_x, $self->event->button_y);
-                            $layer->foreground;
-                            $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
-                            $self->show_card($layer);
-                        }
-                    }
-                    elsif($layer->data->{id} =~ m/rewind_deck/) {
-                        $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
-                        my @cards = ($layer, @{$layer->behind});
-                        pop @cards;
-                        pop @cards;
-                        foreach my $card (@cards) {
-                            $card->attach(@{$self->_point_xy('rewind_deck_2_hotspot')});
-                            $card->foreground;
-                            $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
-                            $self->hide_card($self->_point('rewind_deck_1_hotspot'));
-                        }
-                    }
-                }
-            }
-        },
-        on_dblclick => sub {
-            $self->last_click(0);
-            $self->layers->detach_back;
-
-            my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
-
-            if(defined $layer
-            && !scalar @{$layer->ahead}
-            && $layer->data->{id} =~ m/\d+/
-            && $layer->data->{visible}) {
-                my $target = $self->layers->by_position(
-                    $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
-                );
-
-                if($self->can_drop($layer->data->{id}, $target->data->{id})) {
-                    $layer->attach($self->event->button_x, $self->event->button_y);
-                    $layer->foreground;
-                    $layer->detach_xy(_x($target), _y($target));
-                    $self->show_card($self->event->button_x, $self->event->button_y);
-                }
-            }
-        },
-        on_mousemove => sub {
-        },
-        on_keydown => sub {
-        },
-    };
     
     while($self->loop) {
-        $self->event_loop($handler);
+        $self->event_loop;
         $self->layers->blit($self->display);
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);
         $self->fps->delay;
