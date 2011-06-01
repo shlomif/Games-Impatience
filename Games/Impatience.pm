@@ -125,7 +125,7 @@ sub _on_drop {
     # $self->selected_cards contains whatever set
     # of cards the player is moving around
 
-    if(@{$self->selected_cards}) {
+    if ( @{$self->selected_cards} ) {
         my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
 
         my @stack           = scalar @selected_cards_
@@ -134,22 +134,22 @@ sub _on_drop {
         my $dropped         = 0;
         my @position_before = ();
 
-        if(scalar @stack) {
+        if (@stack) {
             # to empty field
-            if($stack[0]->data->{id} =~ m/empty_stack/
+            if ($stack[0]->data->{id} =~ m/empty_stack/
                 && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
                 @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
                 $dropped         = 1;
             }
 
             # to face-up card
-            elsif($stack[0]->data->{visible}
+            elsif ($stack[0]->data->{visible}
                 && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
                 @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
                 $dropped         = 1;
             }
 
-            if($dropped && scalar @position_before) {
+            if ($dropped && scalar @position_before) {
                 $position_before[0] += $hotspot_offset; # transparent border
                 $position_before[1] += $hotspot_offset;
                 $self->show_card(@position_before);
@@ -171,18 +171,18 @@ sub _on_click {
 
         if (defined $layer) {
             if (_is_num( $layer->data->{id} )) {
-                if($layer->data->{visible}) {
+                if ($layer->data->{visible}) {
                     $self->selected_cards([$layer, @{$layer->ahead}]);
                     $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
                 }
-                elsif(!scalar @{$layer->ahead}) {
+                elsif (! @{$layer->ahead}) {
                     $layer->attach($self->event->button_x, $self->event->button_y);
                     $layer->foreground;
                     $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
                     $self->show_card($layer);
                 }
             }
-            elsif($layer->data->{id} =~ m/rewind_deck/) {
+            elsif ($layer->data->{id} =~ m/rewind_deck/) {
                 $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
                 my @cards = ($layer, @{$layer->behind});
                 pop @cards;
@@ -213,7 +213,7 @@ sub _on_dblclick {
             $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
         );
 
-        if($self->can_drop($layer->data->{id}, $target->data->{id})) {
+        if ( $self->can_drop($layer->data->{id}, $target->data->{id}) ) {
             $layer->attach($self->event->button_x, $self->event->button_y);
             $layer->foreground;
             $layer->detach_xy(_x($target), _y($target));
@@ -322,7 +322,7 @@ sub _handle_layer {
         $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
     );
 
-    if($self->can_drop($layer->data->{id}, $target->data->{id})) {
+    if ( $self->can_drop($layer->data->{id}, $target->data->{id}) ) {
 
         $layer->attach($self->event->button_x, $self->event->button_y);
         $layer->foreground;
@@ -348,7 +348,7 @@ sub _handle_layer {
         my $step_x = $calc_dx->() / $steps;
         my $step_y = $calc_dy->() / $steps;
 
-        while($dist > 40) {
+        while ($dist > 40) {
 
             #$w += $layer->clip->w - $x;
             #$h += $layer->clip->h - $y;
@@ -395,7 +395,7 @@ sub _handle_mouse_button_up
     $self->_on_drop;
 
     my $dropped = 1;
-    while($dropped) {
+    while ($dropped) {
         $dropped = 0;
         for my $idx (-1..6) {
 
@@ -405,7 +405,7 @@ sub _handle_mouse_button_up
             
             $layer = pop @stack if scalar @stack;
             
-            if( $self->_is_layer_visible($layer) ) {
+            if ( $self->_is_layer_visible($layer) ) {
                 $dropped = $self->_handle_layer($layer, \@stack);
             }
         }
@@ -503,7 +503,7 @@ sub event_loop
     my $self = shift;
 
     SDL::Events::pump_events();
-    while(SDL::Events::poll_event($self->event))
+    while (SDL::Events::poll_event($self->event))
     {
         $self->_handle_event;
     }
@@ -515,7 +515,7 @@ sub _run
 
     $self->selected_cards([]);
     
-    while($self->loop) {
+    while ($self->loop) {
         $self->event_loop;
         $self->layers->blit($self->display);
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);
@@ -560,7 +560,7 @@ sub can_drop {
     }
     
     # Aces can be put on empty field (at upper right)
-    if( _is_card_an_ace($card) 
+    if ( _is_card_an_ace($card) 
         && $target =~ m/empty_target_\Q$card_color\E/) {
         return 1;
     }
@@ -576,7 +576,7 @@ sub can_drop {
         return 1;
     }
     
-    if($are_nums
+    if ($are_nums
         && '12,25,38,51' !~ m/\b\Q$card\E\b/
         && ($card + 14 == $target || $card + 40 == $target
          || $card - 12 == $target || $card - 38 == $target)
@@ -595,7 +595,7 @@ sub hide_card {
 
     my $layer = $self->layers->by_position(@{$xy->xy});
 
-    if($layer
+    if ($layer
     && _is_num( $layer->data->{id} )
     && $layer->data->{visible}) {
         $layer->surface(SDL::Image::load('data/card_back.png'));
@@ -608,7 +608,7 @@ sub show_card {
 
     my $layer = (scalar @_ == 2) ? $self->layers->by_position(@_) : shift;
 
-    if($layer
+    if ($layer
     && _is_num ($layer->data->{id} )
     && !$layer->data->{visible}) {
         $layer->surface(SDL::Image::load('data/card_' . $layer->data->{id} . '.png'));
@@ -677,14 +677,14 @@ sub init_cards {
         my $visible = 0;
         my ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
         
-        if($card_idx < 28)
+        if ($card_idx < 28)
         {
-            if($stack_position > $stack_index)
+            if ($stack_position > $stack_index)
             {
                 $stack_index++;
                 $stack_position = 0;
             }
-            if($stack_position == $stack_index)
+            if ($stack_position == $stack_index)
             {
                 $image   = "data/card_$card_value.png";
                 $visible = 1;
