@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-package Games::Cards::Solitaire::SDL;
+package Games::Impatience;
 
 use strict;
 use warnings;
@@ -244,6 +244,25 @@ sub _handle_mouse_button_up
     }
 }
 
+sub _handle_mouse_button_down_event {
+    my ($self, $handler) = @_;
+
+    $self->left_mouse_down(1) if $self->event->button_button == SDL_BUTTON_LEFT;
+
+    my $time = Time::HiRes::time;
+
+    if ($time - $self->last_click >= 0.3) {
+        $handler->{on_click}->();
+    }
+    else {
+        $handler->{on_dblclick}->();
+    }
+
+    $self->last_click($time);
+
+    return;
+}
+
 sub event_loop
 {
     my $self = shift;
@@ -256,15 +275,7 @@ sub event_loop
         my $type = $self->event->type;
 
         if ($type == SDL_MOUSEBUTTONDOWN) {
-            $self->left_mouse_down(1) if $self->event->button_button == SDL_BUTTON_LEFT;
-            my $time = Time::HiRes::time;
-            if ($time - $self->last_click >= 0.3) {
-                $handler->{on_click}->();
-            }
-            else {
-                $handler->{on_dblclick}->();
-            }
-            $self->last_click($time);
+            $self->_handle_mouse_button_down_event($handler);
         }
         elsif ($type == SDL_MOUSEMOTION) {
             if ($self->left_mouse_down) {
@@ -628,13 +639,6 @@ sub fisher_yates_shuffle
 
     return $array;
 }
-
-1;
-
-package main;
-
-my $self = Games::Cards::Solitaire::SDL->new;
-$self->play();
 
 1;
 
