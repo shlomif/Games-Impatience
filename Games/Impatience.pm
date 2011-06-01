@@ -75,16 +75,28 @@ sub new
     return $self;
 }
 
+sub _on_quit
+{
+    my ($self) = @_;
+
+    $self->loop(0);
+
+    return;
+}
+
+sub _on_drag {
+    my ($self) = @_;
+
+    # Do nothing here - don't know why this method exists -- shlomif
+
+    return;
+}
+
 sub _calc_handler {
     my $self = shift;
 
     return
     {
-        on_quit    => sub {
-            $self->loop(0);
-        },
-        on_drag => sub {
-        },
         on_drop    => sub {
             # @selected_cards contains whatever set
             # of cards the player is moving around
@@ -389,7 +401,7 @@ sub event_loop
         }
         elsif ($type == SDL_MOUSEMOTION) {
             if ($self->left_mouse_down) {
-                $self->_handler->{on_drag}->();
+                $self->_on_drag;
             }
             else {
                 $self->_handler->{on_mousemove}->();
@@ -418,12 +430,12 @@ sub event_loop
                 SDL::Video::save_BMP($self->display, sprintf("Shot%04d.bmp", $screen_shot_index ));
             }
             elsif($self->event->key_sym == SDLK_ESCAPE) {
-                $self->_handler->{on_quit}->();
+                $self->_on_quit;
             }
             $self->_handler->{on_keydown}->();
         }
         elsif ($type == SDL_QUIT) {
-            $self->_handler->{on_quit}->();
+            $self->_on_quit;
         }
     }
 }
