@@ -185,11 +185,7 @@ sub _on_dblclick {
 
     my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
 
-    # TODO : extract to the same defined ($layer) && thing as before.
-    if(defined $layer
-        && !scalar @{$layer->ahead}
-        && $layer->data->{id} =~ m/\d+/
-        && $layer->data->{visible}) {
+    if ( _is_layer_visible($layer) ) {
         my $target = $self->layers->by_position(
             $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
         );
