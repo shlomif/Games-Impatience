@@ -323,8 +323,6 @@ sub game
     my $self = shift;
 
     my @selected_cards = ();
-    my $x = 0;
-    my $y = 0;
     my $handler =
     {
         on_quit    => sub {
