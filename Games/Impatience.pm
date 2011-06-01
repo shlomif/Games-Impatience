@@ -9,7 +9,7 @@ use Carp;
 
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event fps _handler last_click layers
+    accessors => [qw(display event fps last_click layers
         left_mouse_down loop _points selected_cards
     )],
 };
@@ -74,8 +74,6 @@ sub new
     $self->_add_point('left_target_position', { x=> 350, y => 20, });
     $self->_add_point('left_target_hotspot', { x=> 370, y => 40, });
     $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
-
-    $self->_handler($self->_calc_handler());
 
     # ADD_HERE_POINT
     return $self;
@@ -221,14 +219,6 @@ sub _on_keydown {
     # Do nothing here - don't know why this method exists -- shlomif
 
     return;
-}
-
-sub _calc_handler {
-    my $self = shift;
-
-    return
-    {
-    };
 }
 
 sub _add_point {
@@ -443,7 +433,7 @@ sub event_loop
             }
         }
         elsif ($type == SDL_MOUSEBUTTONUP) {
-            $self->_handle_mouse_button_up($self->_handler);
+            $self->_handle_mouse_button_up;
         }
         elsif ($type == SDL_KEYDOWN) {
             if($self->event->key_sym == SDLK_PRINT) {
