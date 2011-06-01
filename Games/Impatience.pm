@@ -92,49 +92,53 @@ sub _on_drag {
     return;
 }
 
+sub _on_drop {
+    my ($self) = @_;
+    # @selected_cards contains whatever set
+    # of cards the player is moving around
+    if(@{$self->selected_cards}) {
+        my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
+
+        my @stack           = scalar @selected_cards_
+        ? @{$self->selected_cards->[0]->behind}
+        : ();
+        my $dropped         = 0;
+        my @position_before = ();
+
+        if(scalar @stack) {
+            # to empty field
+            if($stack[0]->data->{id} =~ m/empty_stack/
+                && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
+                @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
+                $dropped         = 1;
+            }
+
+            # to face-up card
+            elsif($stack[0]->data->{visible}
+                && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
+                @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
+                $dropped         = 1;
+            }
+
+            if($dropped && scalar @position_before) {
+                $position_before[0] += $hotspot_offset; # transparent border
+                $position_before[1] += $hotspot_offset;
+                $self->show_card(@position_before);
+            }
+        }
+
+        $self->layers->detach_back unless $dropped;
+    }
+    $self->selected_cards([]);
+
+    return;
+}
+
 sub _calc_handler {
     my $self = shift;
 
     return
     {
-        on_drop    => sub {
-            # @selected_cards contains whatever set
-            # of cards the player is moving around
-            if(@{$self->selected_cards}) {
-                my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
-
-                my @stack           = scalar @selected_cards_
-                                    ? @{$self->selected_cards->[0]->behind}
-                                    : ();
-                my $dropped         = 0;
-                my @position_before = ();
-                
-                if(scalar @stack) {
-                    # to empty field
-                    if($stack[0]->data->{id} =~ m/empty_stack/
-                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
-                        $dropped         = 1;
-                    }
-                    
-                    # to face-up card
-                    elsif($stack[0]->data->{visible}
-                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
-                        @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
-                        $dropped         = 1;
-                    }
-                    
-                    if($dropped && scalar @position_before) {
-                        $position_before[0] += $hotspot_offset; # transparent border
-                        $position_before[1] += $hotspot_offset;
-                        $self->show_card(@position_before);
-                    }
-                }
-
-                $self->layers->detach_back unless $dropped;
-            }
-            $self->selected_cards([]);
-        },
         on_click => sub {
             unless(@{$self->selected_cards}) {
                 my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
@@ -348,7 +352,7 @@ sub _handle_mouse_button_up
     my ($self) = @_;
 
     $self->left_mouse_down(0) if $self->event->button_button == SDL_BUTTON_LEFT;
-    $self->_handler->{on_drop}->();
+    $self->_on_drop;
 
     my $dropped = 1;
     while($dropped) {
