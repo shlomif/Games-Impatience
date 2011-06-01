@@ -94,8 +94,10 @@ sub _on_drag {
 
 sub _on_drop {
     my ($self) = @_;
-    # @selected_cards contains whatever set
+
+    # $self->selected_cards contains whatever set
     # of cards the player is moving around
+
     if(@{$self->selected_cards}) {
         my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
 
@@ -134,43 +136,48 @@ sub _on_drop {
     return;
 }
 
+sub _on_click {
+    my ($self) = @_;
+
+    unless(@{$self->selected_cards}) {
+        my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
+
+        if(defined $layer) {
+            if($layer->data->{id} =~ m/^\d+$/) {
+                if($layer->data->{visible}) {
+                    $self->selected_cards([$layer, @{$layer->ahead}]);
+                    $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
+                }
+                elsif(!scalar @{$layer->ahead}) {
+                    $layer->attach($self->event->button_x, $self->event->button_y);
+                    $layer->foreground;
+                    $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
+                    $self->show_card($layer);
+                }
+            }
+            elsif($layer->data->{id} =~ m/rewind_deck/) {
+                $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
+                my @cards = ($layer, @{$layer->behind});
+                pop @cards;
+                pop @cards;
+                foreach my $card (@cards) {
+                    $card->attach(@{$self->_point_xy('rewind_deck_2_hotspot')});
+                    $card->foreground;
+                    $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
+                    $self->hide_card($self->_point('rewind_deck_1_hotspot'));
+                }
+            }
+        }
+    }
+
+    return;
+}
+
 sub _calc_handler {
     my $self = shift;
 
     return
     {
-        on_click => sub {
-            unless(@{$self->selected_cards}) {
-                my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
-                
-                if(defined $layer) {
-                    if($layer->data->{id} =~ m/^\d+$/) {
-                        if($layer->data->{visible}) {
-                            $self->selected_cards([$layer, @{$layer->ahead}]);
-                            $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
-                        }
-                        elsif(!scalar @{$layer->ahead}) {
-                            $layer->attach($self->event->button_x, $self->event->button_y);
-                            $layer->foreground;
-                            $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
-                            $self->show_card($layer);
-                        }
-                    }
-                    elsif($layer->data->{id} =~ m/rewind_deck/) {
-                        $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
-                        my @cards = ($layer, @{$layer->behind});
-                        pop @cards;
-                        pop @cards;
-                        foreach my $card (@cards) {
-                            $card->attach(@{$self->_point_xy('rewind_deck_2_hotspot')});
-                            $card->foreground;
-                            $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
-                            $self->hide_card($self->_point('rewind_deck_1_hotspot'));
-                        }
-                    }
-                }
-            }
-        },
         on_dblclick => sub {
             $self->last_click(0);
             $self->layers->detach_back;
@@ -380,7 +387,7 @@ sub _handle_mouse_button_down_event {
     my $time = Time::HiRes::time;
 
     if ($time - $self->last_click >= 0.3) {
-        $self->_handler->{on_click}->();
+        $self->_on_click;
     }
     else {
         $self->_handler->{on_dblclick}->();
