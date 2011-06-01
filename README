@@ -15,3 +15,15 @@ More information about Patience and card Solitaire can be found at:
 
 * http://pysolfc.sourceforge.net/ - PySolFC, a comprehensive open source 
 implementation in Python using Tkinter.
+
+License:
+========
+
+Impatience is free and open source software (FOSS) copyrighted by
+Tobias Leich, 2010-2011 and made available under the Artistic License 2.0 or
+at your option any later version of that license:
+
+* http://en.wikipedia.org/wiki/Artistic_License
+
+For more information see the COPYING file.
+
