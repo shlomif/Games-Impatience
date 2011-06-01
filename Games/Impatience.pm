@@ -126,11 +126,16 @@ sub _on_drop {
     # of cards the player is moving around
 
     if ( @{$self->selected_cards} ) {
-        my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
+        foreach my $card (@{$self->selected_cards})
+        {
+            $card->foreground;
+        }
 
-        my @stack           = scalar @selected_cards_
-        ? @{$self->selected_cards->[0]->behind}
-        : ();
+        my @stack
+            = @{$self->selected_cards}
+            ? @{$self->selected_cards->[0]->behind}
+            : ();
+
         my $dropped         = 0;
         my @position_before = ();
 
