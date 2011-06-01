@@ -14,6 +14,29 @@ use Class::XSAccessor {
     )],
 };
 
+=head1 NAME
+
+Games::Impatience - an implementation of Patience for Perl/SDL (Klondike 
+so far)
+
+=head1 VERSION
+
+Version 0.0.1
+
+=cut
+
+our $VERSION = '0.0.1';
+
+=head1 SYNOPSIS
+
+    use Games::Impatience;
+
+    my $game = Games::Impatience->new();
+
+    $game->play();
+
+=cut
+
 use Time::HiRes;
 
 use SDL;
@@ -263,7 +286,7 @@ sub play
         SDL::Video::update_rects($self->display, @rects);
     }
 
-    return $self->game();
+    return $self->_run();
 }
 
 sub _x
@@ -486,7 +509,7 @@ sub event_loop
     }
 }
 
-sub game
+sub _run
 {
     my $self = shift;
 
@@ -704,10 +727,50 @@ sub fisher_yates_shuffle
 
 1;
 
+=head1 AUTHOR
+
+Tobias Leich (FROGGS), L<http://github.com/FROGGS> .
+
+Shlomi Fish, L<http://www.shlomifish.org/> .
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-games-impatience at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Games-Impatience>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Games::Impatience
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Games-Impatience>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Games-Impatience>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Games-Impatience>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Games-Impatience/>
+
+=back
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright by FROGGS, 2010-2011 under the Artistic 2.0 License. See the
-C<COPYING> file for details.
+Copyright by Tobias Leich ("FROGGS"), 2010-2011 under the Artistic 2.0 
+License. See the C<COPYING> file for details.
 
 =cut
 
