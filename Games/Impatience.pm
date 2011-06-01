@@ -619,7 +619,7 @@ sub init_cards {
     my $card_values = fisher_yates_shuffle([0..51]);
 
     my $card_idx = 0;
-    while ( my $card_value = shift(@$card_values) )
+    foreach my $card_value ( @$card_values )
     {
         my $image   = 'data/card_back.png';
         my $visible = 0;
