@@ -1,3 +1,8 @@
+* Get rid of 'if(' , 'while(' , 'unless(', etc. (without spaces.).
+
+* Convert the if ($type == SDL_MOUSEBUTTONDOWN...) if/elsif to a method
+lookup.
+
 (hard) card dragging should be smoother
 (easy) released card shouldn't have to be *exactly* in destination spot
 (easy) card sound!
