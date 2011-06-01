@@ -187,7 +187,7 @@ sub _on_dblclick {
 
     if ( $self->_is_layer_visible($layer) ) {
         my $target = $self->layers->by_position(
-            $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
+            $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
         );
 
         if($self->can_drop($layer->data->{id}, $target->data->{id})) {
@@ -296,7 +296,7 @@ sub _handle_layer {
     my ($self, $layer, $stack_ref) = @_;
 
     my $target = $self->layers->by_position(
-        $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
+        $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
     );
 
     if($self->can_drop($layer->data->{id}, $target->data->{id})) {
@@ -499,7 +499,7 @@ sub can_drop {
     my $self = shift;
 
     my $card       = shift;
-    my $card_color = int($card / 13);
+    my $card_color = int($card / $NUM_RANKS_IN_SUITS);
     my $target     = shift;
     my $stack      = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_color, $self->_point_y('left_target_hotspot'));
     
