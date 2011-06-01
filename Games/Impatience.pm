@@ -173,33 +173,39 @@ sub _on_click {
     return;
 }
 
+sub _on_dblclick {
+    my ($self) = @_;
+
+    $self->last_click(0);
+    $self->layers->detach_back;
+
+    my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
+
+    # TODO : extract to the same defined ($layer) && thing as before.
+    if(defined $layer
+        && !scalar @{$layer->ahead}
+        && $layer->data->{id} =~ m/\d+/
+        && $layer->data->{visible}) {
+        my $target = $self->layers->by_position(
+            $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
+        );
+
+        if($self->can_drop($layer->data->{id}, $target->data->{id})) {
+            $layer->attach($self->event->button_x, $self->event->button_y);
+            $layer->foreground;
+            $layer->detach_xy(_x($target), _y($target));
+            $self->show_card($self->event->button_x, $self->event->button_y);
+        }
+    }
+
+    return;
+}
+
 sub _calc_handler {
     my $self = shift;
 
     return
     {
-        on_dblclick => sub {
-            $self->last_click(0);
-            $self->layers->detach_back;
-
-            my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
-
-            if(defined $layer
-            && !scalar @{$layer->ahead}
-            && $layer->data->{id} =~ m/\d+/
-            && $layer->data->{visible}) {
-                my $target = $self->layers->by_position(
-                    $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
-                );
-
-                if($self->can_drop($layer->data->{id}, $target->data->{id})) {
-                    $layer->attach($self->event->button_x, $self->event->button_y);
-                    $layer->foreground;
-                    $layer->detach_xy(_x($target), _y($target));
-                    $self->show_card($self->event->button_x, $self->event->button_y);
-                }
-            }
-        },
         on_mousemove => sub {
         },
         on_keydown => sub {
@@ -390,7 +396,7 @@ sub _handle_mouse_button_down_event {
         $self->_on_click;
     }
     else {
-        $self->_handler->{on_dblclick}->();
+        $self->_on_dblclick;
     }
 
     $self->last_click($time);
