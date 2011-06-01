@@ -143,11 +143,11 @@ sub _on_drop {
 sub _on_click {
     my ($self) = @_;
 
-    unless(@{$self->selected_cards}) {
+    unless (@{$self->selected_cards}) {
         my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
 
-        if(defined $layer) {
-            if($layer->data->{id} =~ m/^\d+$/) {
+        if (defined $layer) {
+            if (_is_num( $layer->data->{id} )) {
                 if($layer->data->{visible}) {
                     $self->selected_cards([$layer, @{$layer->ahead}]);
                     $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
@@ -286,7 +286,7 @@ sub _is_layer_visible {
     return
     (
            defined $layer
-        && $layer->data->{id} =~ m/\d+/
+        && _is_num( $layer->data->{id} )
         && $layer->data->{visible}
         && !scalar @{$layer->ahead}
     );
@@ -548,7 +548,7 @@ sub hide_card {
     my $layer = $self->layers->by_position(@{$xy->xy});
 
     if($layer
-    && $layer->data->{id} =~ m/\d+/
+    && _is_num( $layer->data->{id} )
     && $layer->data->{visible}) {
         $layer->surface(SDL::Image::load('data/card_back.png'));
         $layer->data({id => $layer->data->{id}, visible => 0});
@@ -561,7 +561,7 @@ sub show_card {
     my $layer = (scalar @_ == 2) ? $self->layers->by_position(@_) : shift;
 
     if($layer
-    && $layer->data->{id} =~ m/\d+/
+    && _is_num ($layer->data->{id} )
     && !$layer->data->{visible}) {
         $layer->surface(SDL::Image::load('data/card_' . $layer->data->{id} . '.png'));
         $layer->data({id => $layer->data->{id}, visible => 1});
