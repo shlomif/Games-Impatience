@@ -453,6 +453,28 @@ sub _handle_key_down_event
     return;
 }
 
+sub _handle_event {
+    my ($self) = @_;
+
+    my %type_method = (
+        SDL_MOUSEBUTTONDOWN() => '_handle_mouse_button_down_event',
+        SDL_MOUSEMOTION() => '_handle_mouse_motion',
+        SDL_MOUSEBUTTONUP() => '_handle_mouse_button_up',
+        SDL_KEYDOWN() => '_handle_key_down_event',
+        SDL_QUIT() => '_on_quit',
+    );
+
+    my $type = $self->event->type;
+
+    if ( exists($type_method{$type}) ) {
+        my $m = $type_method{$type};
+
+        $self->$m();
+    }
+
+    return;
+}
+
 sub event_loop
 {
     my $self = shift;
@@ -460,21 +482,7 @@ sub event_loop
     SDL::Events::pump_events();
     while(SDL::Events::poll_event($self->event))
     {
-        my %type_method = (
-            SDL_MOUSEBUTTONDOWN() => '_handle_mouse_button_down_event',
-            SDL_MOUSEMOTION() => '_handle_mouse_motion',
-            SDL_MOUSEBUTTONUP() => '_handle_mouse_button_up',
-            SDL_KEYDOWN() => '_handle_key_down_event',
-            SDL_QUIT() => '_on_quit',
-        );
-
-        my $type = $self->event->type;
-
-        if ( exists($type_method{$type}) ) {
-            my $m = $type_method{$type};
-
-            $self->$m();
-        }
+        $self->_handle_event;
     }
 }
 
