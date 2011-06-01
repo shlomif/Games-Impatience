@@ -408,6 +408,51 @@ sub _handle_mouse_button_down_event {
     return;
 }
 
+sub _handle_mouse_motion
+{
+    my ($self) = @_;
+
+    if ($self->left_mouse_down) {
+        $self->_on_drag;
+    }
+    else {
+        $self->_on_mousemove;
+    }
+
+    return;
+}
+
+sub _handle_key_down_event
+{
+    my ($self) = @_;
+
+    if ( $self->event->key_sym == SDLK_PRINT ) {
+
+        my $screen_shot_index = 1;
+
+        # TODO : perhaps do it using max.
+        foreach my $bmp_fn (<Shot*.bmp>)
+        {
+            if (my ($new_index) = $bmp_fn =~ /Shot(\d+)\.bmp/)
+            { 
+                if ($new_index >= $screen_shot_index)
+                {
+                    $screen_shot_index = $new_index + 1;
+                }
+            }
+        }
+
+        SDL::Video::save_BMP($self->display, sprintf("Shot%04d.bmp", $screen_shot_index ));
+    }
+    elsif ($self->event->key_sym == SDLK_ESCAPE) {
+        $self->_on_quit;
+    }
+
+    $self->_on_keydown;
+
+    return;
+}
+
 sub event_loop
 {
     my $self = shift;
@@ -421,39 +466,13 @@ sub event_loop
             $self->_handle_mouse_button_down_event;
         }
         elsif ($type == SDL_MOUSEMOTION) {
-            if ($self->left_mouse_down) {
-                $self->_on_drag;
-            }
-            else {
-                $self->_on_mousemove;
-            }
+            $self->_handle_mouse_motion;
         }
         elsif ($type == SDL_MOUSEBUTTONUP) {
             $self->_handle_mouse_button_up;
         }
         elsif ($type == SDL_KEYDOWN) {
-            if($self->event->key_sym == SDLK_PRINT) {
-
-                my $screen_shot_index = 1;
-
-                # TODO : perhaps do it using max.
-                foreach my $bmp_fn (<Shot*\.bmp>)
-                {
-                    if (my ($new_index) = $bmp_fn =~ /Shot(\d+)\.bmp/)
-                    { 
-                        if ($new_index >= $screen_shot_index)
-                        {
-                            $screen_shot_index = $new_index + 1;
-                        }
-                    }
-                }
-
-                SDL::Video::save_BMP($self->display, sprintf("Shot%04d.bmp", $screen_shot_index ));
-            }
-            elsif($self->event->key_sym == SDLK_ESCAPE) {
-                $self->_on_quit;
-            }
-            $self->_on_keydown;
+            $self->_handle_key_down_event;
         }
         elsif ($type == SDL_QUIT) {
             $self->_on_quit;
