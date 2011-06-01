@@ -523,6 +523,26 @@ sub _run
     }
 }
 
+# Suit 0 - Hearts ♥
+# Suit 1 - Clubs ♣
+# Suit 2 - Diamonds - ♦
+# Suit 3 - Spades - ♠
+
+my $suits_as_string = "HCDS";
+
+sub _get_card_suit
+{
+    my ($card) = @_;
+
+    return int( $card / $NUM_RANKS_IN_SUITS );
+}
+
+sub _get_card_color
+{
+    my ($card) = @_;
+
+    return (_get_card_suit($card) & 0x1);
+}
 
 sub _get_card_rank
 {
@@ -577,9 +597,8 @@ sub can_drop {
     }
     
     if ($are_nums
-        && '12,25,38,51' !~ m/\b\Q$card\E\b/
-        && ($card + 14 == $target || $card + 40 == $target
-         || $card - 12 == $target || $card - 38 == $target)
+        && (_get_card_color($card) != _get_card_color($target))
+        && (_get_card_rank($card)+1 == _get_card_rank($target))
     )
     {
         return 1;
