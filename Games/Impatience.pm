@@ -10,7 +10,7 @@ use Carp;
 use Class::XSAccessor {
     constructor => '_create_empty_new',
     accessors => [qw(display event fps last_click layers left_mouse_down loop
-        _points    
+        _points selected_cards
     )],
 };
 
@@ -322,7 +322,8 @@ sub game
 {
     my $self = shift;
 
-    my @selected_cards = ();
+    $self->selected_cards([]);
+
     my $handler =
     {
         on_quit    => sub {
@@ -333,11 +334,11 @@ sub game
         on_drop    => sub {
             # @selected_cards contains whatever set
             # of cards the player is moving around
-            if(scalar @selected_cards) {
-                my @selected_cards_ = (map { $_->foreground } @selected_cards);
+            if(@{$self->selected_cards}) {
+                my @selected_cards_ = (map { $_->foreground } @{$self->selected_cards});
 
                 my @stack           = scalar @selected_cards_
-                                    ? @{$selected_cards[0]->behind}
+                                    ? @{$self->selected_cards->[0]->behind}
                                     : ();
                 my $dropped         = 0;
                 my @position_before = ();
@@ -345,14 +346,14 @@ sub game
                 if(scalar @stack) {
                     # to empty field
                     if($stack[0]->data->{id} =~ m/empty_stack/
-                       && $self->can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
+                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
                         @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
                         $dropped         = 1;
                     }
                     
                     # to face-up card
                     elsif($stack[0]->data->{visible}
-                       && $self->can_drop($selected_cards[0]->data->{id}, $stack[0]->data->{id})) {
+                       && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
                         @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
                         $dropped         = 1;
                     }
@@ -366,17 +367,17 @@ sub game
 
                 $self->layers->detach_back unless $dropped;
             }
-            @selected_cards = ();
+            $self->selected_cards([]);
         },
         on_click => sub {
-            unless(scalar @selected_cards) {
+            unless(@{$self->selected_cards}) {
                 my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
                 
                 if(defined $layer) {
                     if($layer->data->{id} =~ m/^\d+$/) {
                         if($layer->data->{visible}) {
-                            @selected_cards = ($layer, @{$layer->ahead});
-                            $self->layers->attach(@selected_cards, $self->event->button_x, $self->event->button_y);
+                            $self->selected_cards([$layer, @{$layer->ahead}]);
+                            $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
                         }
                         elsif(!scalar @{$layer->ahead}) {
                             $layer->attach($self->event->button_x, $self->event->button_y);
