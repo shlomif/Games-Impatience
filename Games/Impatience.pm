@@ -201,15 +201,27 @@ sub _on_dblclick {
     return;
 }
 
+sub _on_mousemove {
+    my ($self) = @_;
+
+    # Do nothing here - don't know why this method exists -- shlomif
+
+    return;
+}
+
+sub _on_keydown {
+    my ($self) = @_;
+
+    # Do nothing here - don't know why this method exists -- shlomif
+
+    return;
+}
+
 sub _calc_handler {
     my $self = shift;
 
     return
     {
-        on_mousemove => sub {
-        },
-        on_keydown => sub {
-        },
     };
 }
 
@@ -421,7 +433,7 @@ sub event_loop
                 $self->_on_drag;
             }
             else {
-                $self->_handler->{on_mousemove}->();
+                $self->_on_mousemove;
             }
         }
         elsif ($type == SDL_MOUSEBUTTONUP) {
@@ -449,7 +461,7 @@ sub event_loop
             elsif($self->event->key_sym == SDLK_ESCAPE) {
                 $self->_on_quit;
             }
-            $self->_handler->{on_keydown}->();
+            $self->_on_keydown;
         }
         elsif ($type == SDL_QUIT) {
             $self->_on_quit;
