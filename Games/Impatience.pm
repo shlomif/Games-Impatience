@@ -67,7 +67,13 @@ sub new
 
     $self->_add_point('rewind_deck_1_position', { x => 20,   y => 20,  });
     $self->_add_point('rewind_deck_1_hotspot',  { x => 40,   y => 40,  });
-    $self->_add_point('rewind_deck_2_position', { x=> 130, y => 20, });    $self->_add_point('rewind_deck_2_hotspot', { x=> 150, y => 40, });    $self->_add_point('left_stack_position', { x=> 20, y => 200, });    $self->_add_point('left_stack_hotspot', { x=> 40, y => 220, });    $self->_add_point('left_target_position', { x=> 350, y => 20, });    $self->_add_point('left_target_hotspot', { x=> 370, y => 40, });    $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
+    $self->_add_point('rewind_deck_2_position', { x=> 130, y => 20, });
+    $self->_add_point('rewind_deck_2_hotspot', { x=> 150, y => 40, });
+    $self->_add_point('left_stack_position', { x=> 20, y => 200, });
+    $self->_add_point('left_stack_hotspot', { x=> 40, y => 220, });
+    $self->_add_point('left_target_position', { x=> 350, y => 20, });
+    $self->_add_point('left_target_hotspot', { x=> 370, y => 40, });
+    $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
 
     $self->_handler($self->_calc_handler());
 
