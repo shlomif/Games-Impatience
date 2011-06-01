@@ -185,7 +185,7 @@ sub _on_dblclick {
 
     my $layer  = $self->layers->by_position($self->event->button_x, $self->event->button_y);
 
-    if ( _is_layer_visible($layer) ) {
+    if ( $self->_is_layer_visible($layer) ) {
         my $target = $self->layers->by_position(
             $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / 13), $self->_point_y('left_target_hotspot')
         );
@@ -281,7 +281,7 @@ sub _is_num {
 }
 
 sub _is_layer_visible {
-    my ($layer) = @_;
+    my ($self, $layer) = @_;
 
     return
     (
@@ -382,7 +382,7 @@ sub _handle_mouse_button_up
             
             $layer = pop @stack if scalar @stack;
             
-            if( _is_layer_visible($layer) ) {
+            if( $self->_is_layer_visible($layer) ) {
                 $dropped = $self->_handle_layer($layer, \@stack);
             }
         }
