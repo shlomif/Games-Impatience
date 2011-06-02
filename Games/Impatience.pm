@@ -600,13 +600,25 @@ sub can_drop {
     return;
 }
 
+sub _get_card_stack
+{
+    my ($self, $card) = @_;
+
+    my $card_suit = _get_card_suit($card);
+
+    return $self->layers->by_position(
+        $self->_point_x('left_target_hotspot') 
+        + $self->_point_x('space_between_stacks') * $card_suit
+            ,
+        $self->_point_y('left_target_hotspot')
+    );
+}
+
 sub _can_drop_two_cards
 {
     my ($self, $card, $target) = @_;
 
-    my $card_suit = _get_card_suit($card);
-
-    my $stack = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_suit, $self->_point_y('left_target_hotspot'));
+    my $stack = $self->_get_card_stack($card);
     
     return 
     (
