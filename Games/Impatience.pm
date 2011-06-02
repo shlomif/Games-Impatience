@@ -569,10 +569,7 @@ sub _is_card_an_ace {
 }
 
 sub can_drop {
-    my $self = shift;
-
-    my $card       = shift;
-    my $target     = shift;
+    my ($self, $card, $target) = @_;
 
     my $card_suit = _get_card_suit($card);
 
