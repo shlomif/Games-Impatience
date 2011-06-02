@@ -119,6 +119,15 @@ sub _on_drag {
     return;
 }
 
+sub _is_empty_stack
+{
+    my $self = shift;
+
+    my $target = shift;
+
+    return ($target eq 'empty_stack');
+}
+
 sub _on_drop {
     my ($self) = @_;
 
@@ -141,7 +150,7 @@ sub _on_drop {
 
         if (@stack) {
             # to empty field
-            if ($stack[0]->data->{id} eq 'empty_stack'
+            if ($self->_is_empty_stack($stack[0]->data->{id})
                 && $self->can_drop_layers(
                     $self->selected_cards->[0], $stack[0]
                 )
@@ -581,7 +590,7 @@ sub can_drop {
     my $card_suit = _get_card_suit($card);
 
     # Kings can be put on empty fields.
-    if (_is_card_a_king($card) && ($target eq 'empty_stack')) {
+    if (_is_card_a_king($card) && ($self->_is_empty_stack($target))) {
         return 1;
     }
     
