@@ -142,14 +142,21 @@ sub _on_drop {
         if (@stack) {
             # to empty field
             if ($stack[0]->data->{id} =~ m/empty_stack/
-                && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
+                && $self->can_drop_layers(
+                    $self->selected_cards->[0], $stack[0]
+                )
+            ) {
                 @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y)};
                 $dropped         = 1;
             }
 
             # to face-up card
             elsif ($stack[0]->data->{visible}
-                && $self->can_drop($self->selected_cards->[0]->data->{id}, $stack[0]->data->{id})) {
+                && $self->can_drop_layers(
+                    $self->selected_cards->[0],
+                    $stack[0]
+                )
+            ) {
                 @position_before = @{$self->layers->detach_xy($stack[0]->pos->x, $stack[0]->pos->y + $self->_point_y('space_between_stacks'))};
                 $dropped         = 1;
             }
@@ -218,7 +225,7 @@ sub _on_dblclick {
             $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
         );
 
-        if ( $self->can_drop($layer->data->{id}, $target->data->{id}) ) {
+        if ( $self->can_drop_layers($layer, $target) ) {
             $layer->attach($self->event->button_x, $self->event->button_y);
             $layer->foreground;
             $layer->detach_xy(_x($target), _y($target));
@@ -609,6 +616,12 @@ sub can_drop {
     }
     
     return 0;
+}
+
+sub can_drop_layers {
+    my ($self, $source, $target) = @_;
+
+    return $self->can_drop(map { $_->data->{id} } ($source, $target));
 }
 
 sub hide_card {
