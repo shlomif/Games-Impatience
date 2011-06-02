@@ -580,11 +580,6 @@ sub can_drop {
 
     my $card_suit = _get_card_suit($card);
 
-    my $stack      = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_suit, $self->_point_y('left_target_hotspot'));
-    
-    #my @stack = $self->layers->get_layers_behind_layer($stack);
-    #my @stack = $self->layers->get_layers_ahead_layer($stack);
-
     # Kings can be put on empty fields.
     if (_is_card_a_king($card)) {
         return 1 if $target =~ m/empty_stack/;
@@ -596,26 +591,36 @@ sub can_drop {
         return 1;
     }
     
-    my $are_nums = _is_num($card) && _is_num($target);
+    if (_is_num($card) && _is_num($target)
+        && $self->_can_drop_two_cards($card, $target))
+    {
+        return 1;
+    }
 
-    if ($are_nums
-        && $card == $target + 1
-        && $target == $stack->data->{id}
-        && $stack->data->{visible}
-    ) 
-    {
-        return 1;
-    }
+    return;
+}
+
+sub _can_drop_two_cards
+{
+    my ($self, $card, $target) = @_;
+
+    my $card_suit = _get_card_suit($card);
+
+    my $stack = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_suit, $self->_point_y('left_target_hotspot'));
     
-    if ($are_nums
-        && (_get_card_color($card) != _get_card_color($target))
-        && (_get_card_rank($card)+1 == _get_card_rank($target))
-    )
-    {
-        return 1;
-    }
-    
-    return 0;
+    return 
+    (
+        (
+            $card == $target + 1
+            && $target == $stack->data->{id}
+            && $stack->data->{visible}
+        )
+            or
+        (
+            (_get_card_color($card) != _get_card_color($target))
+            && (_get_card_rank($card)+1 == _get_card_rank($target))
+        )
+    );
 }
 
 sub can_drop_layers {
