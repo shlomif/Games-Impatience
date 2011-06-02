@@ -141,7 +141,7 @@ sub _on_drop {
 
         if (@stack) {
             # to empty field
-            if ($stack[0]->data->{id} =~ m/empty_stack/
+            if ($stack[0]->data->{id} eq 'empty_stack'
                 && $self->can_drop_layers(
                     $self->selected_cards->[0], $stack[0]
                 )
@@ -581,8 +581,8 @@ sub can_drop {
     my $card_suit = _get_card_suit($card);
 
     # Kings can be put on empty fields.
-    if (_is_card_a_king($card)) {
-        return 1 if $target =~ m/empty_stack/;
+    if (_is_card_a_king($card) && ($target eq 'empty_stack')) {
+        return 1;
     }
     
     # Aces can be put on empty field (at upper right)
