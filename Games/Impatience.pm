@@ -151,7 +151,7 @@ sub _on_drop {
         if (@stack) {
             # to empty field
             if ($self->_is_empty_stack($stack[0]->data->{id})
-                && $self->can_drop_layers(
+                && $self->_can_drop_layers(
                     $self->selected_cards->[0], $stack[0]
                 )
             ) {
@@ -161,7 +161,7 @@ sub _on_drop {
 
             # to face-up card
             elsif ($stack[0]->data->{visible}
-                && $self->can_drop_layers(
+                && $self->_can_drop_layers(
                     $self->selected_cards->[0],
                     $stack[0]
                 )
@@ -173,7 +173,7 @@ sub _on_drop {
             if ($dropped && scalar @position_before) {
                 $position_before[0] += $hotspot_offset; # transparent border
                 $position_before[1] += $hotspot_offset;
-                $self->show_card(@position_before);
+                $self->_show_card(@position_before);
             }
         }
 
@@ -200,7 +200,7 @@ sub _on_click {
                     $layer->attach($self->event->button_x, $self->event->button_y);
                     $layer->foreground;
                     $layer->detach_xy(@{$self->_point_xy('rewind_deck_2_position')});
-                    $self->show_card($layer);
+                    $self->_show_card($layer);
                 }
             }
             elsif ($layer->data->{id} =~ m/rewind_deck/) {
@@ -212,7 +212,7 @@ sub _on_click {
                     $card->attach(@{$self->_point_xy('rewind_deck_2_hotspot')});
                     $card->foreground;
                     $card->detach_xy($self->_point_xy('rewind_deck_1_position'));
-                    $self->hide_card($self->_point('rewind_deck_1_hotspot'));
+                    $self->_hide_card($self->_point('rewind_deck_1_hotspot'));
                 }
             }
         }
@@ -234,11 +234,11 @@ sub _on_dblclick {
             $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
         );
 
-        if ( $self->can_drop_layers($layer, $target) ) {
+        if ( $self->_can_drop_layers($layer, $target) ) {
             $layer->attach($self->event->button_x, $self->event->button_y);
             $layer->foreground;
             $layer->detach_xy(_x($target), _y($target));
-            $self->show_card($self->event->button_x, $self->event->button_y);
+            $self->_show_card($self->event->button_x, $self->event->button_y);
         }
     }
 
@@ -300,8 +300,8 @@ sub play
 {
     my $self = shift;
 
-    $self->init_background();
-    $self->init_cards();
+    $self->_init_background();
+    $self->_init_cards();
 
     if ( my @rects = @{$self->layers->blit($self->display)} ) {
         SDL::Video::update_rects($self->display, @rects);
@@ -343,7 +343,7 @@ sub _handle_layer {
         $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
     );
 
-    if ( $self->can_drop($layer->data->{id}, $target->data->{id}) ) {
+    if ( $self->_can_drop($layer->data->{id}, $target->data->{id}) ) {
 
         $layer->attach($self->event->button_x, $self->event->button_y);
         $layer->foreground;
@@ -387,7 +387,7 @@ sub _handle_layer {
 
         if (@$stack_ref)
         {
-            $self->show_card(pop @$stack_ref);
+            $self->_show_card(pop @$stack_ref);
         }
 
         return 1;
@@ -519,7 +519,7 @@ sub _handle_event {
     return;
 }
 
-sub event_loop
+sub _event_loop
 {
     my $self = shift;
 
@@ -537,7 +537,7 @@ sub _run
     $self->selected_cards([]);
     
     while ($self->loop) {
-        $self->event_loop;
+        $self->_event_loop;
         $self->layers->blit($self->display);
         SDL::Video::update_rect($self->display, 0, 0, 0, 0);
         $self->fps->delay;
@@ -584,7 +584,7 @@ sub _is_card_an_ace {
     return (_get_card_rank($card) == 0);
 }
 
-sub can_drop {
+sub _can_drop {
     my ($self, $card, $target) = @_;
 
     my $card_suit = _get_card_suit($card);
@@ -644,13 +644,13 @@ sub _can_drop_two_cards
     );
 }
 
-sub can_drop_layers {
+sub _can_drop_layers {
     my ($self, $source, $target) = @_;
 
-    return $self->can_drop(map { $_->data->{id} } ($source, $target));
+    return $self->_can_drop(map { $_->data->{id} } ($source, $target));
 }
 
-sub hide_card {
+sub _hide_card {
     my $self = shift;
 
     my $xy = shift;
@@ -665,7 +665,7 @@ sub hide_card {
     }
 }
 
-sub show_card {
+sub _show_card {
     my $self = shift;
 
     my $layer = (scalar @_ == 2) ? $self->layers->by_position(@_) : shift;
@@ -678,7 +678,7 @@ sub show_card {
     }
 }
 
-sub init_background {
+sub _init_background {
 
     my $self = shift;
 
@@ -725,12 +725,12 @@ sub init_background {
     }
 }
 
-sub init_cards {
+sub _init_cards {
     my $self = shift;
 
     my $stack_index    = 0;
     my $stack_position = 0;
-    my $card_values = fisher_yates_shuffle([0..51]);
+    my $card_values = _fisher_yates_shuffle([0..51]);
 
     my $card_idx = 0;
     foreach my $card_value ( @$card_values )
@@ -770,7 +770,7 @@ sub init_cards {
     }
 }
 
-sub fisher_yates_shuffle
+sub _fisher_yates_shuffle
 {
     my $array = shift;
 
