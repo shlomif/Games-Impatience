@@ -572,9 +572,11 @@ sub can_drop {
     my $self = shift;
 
     my $card       = shift;
-    my $card_color = int($card / $NUM_RANKS_IN_SUITS);
     my $target     = shift;
-    my $stack      = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_color, $self->_point_y('left_target_hotspot'));
+
+    my $card_suit = _get_card_suit($card);
+
+    my $stack      = $self->layers->by_position($self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $card_suit, $self->_point_y('left_target_hotspot'));
     
     #my @stack = $self->layers->get_layers_behind_layer($stack);
     #my @stack = $self->layers->get_layers_ahead_layer($stack);
@@ -586,7 +588,7 @@ sub can_drop {
     
     # Aces can be put on empty field (at upper right)
     if ( _is_card_an_ace($card) 
-        && $target =~ m/empty_target_\Q$card_color\E/) {
+        && $target =~ m/empty_target_\Q$card_suit\E/) {
         return 1;
     }
     
