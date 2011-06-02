@@ -588,7 +588,7 @@ sub can_drop {
     
     # Aces can be put on empty field (at upper right)
     if ( _is_card_an_ace($card) 
-        && $target =~ m/empty_target_\Q$card_suit\E/) {
+        && $target eq "empty_target_$card_suit") {
         return 1;
     }
     
