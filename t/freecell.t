@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use Games::ImFreecell;
+use Games::Impatience::Model;
 
 {
     my $game = Games::ImFreecell->new;
@@ -14,3 +15,9 @@ use Games::ImFreecell;
     ok ($game, "Game was initialised.");
 }
 
+{
+    my $model = Games::Impatience::Model->new;
+
+    # TEST
+    ok ($model, "Model was initted.");
+}
