@@ -128,6 +128,18 @@ sub _is_empty_stack
     return ($target eq 'empty_stack');
 }
 
+sub _selected_cards_to_foreground
+{
+    my $self = shift;
+
+    foreach my $card (@{$self->selected_cards})
+    {
+        $card->foreground;
+    }
+
+    return;
+}
+
 sub _on_drop {
     my ($self) = @_;
 
@@ -135,10 +147,7 @@ sub _on_drop {
     # of cards the player is moving around
 
     if ( @{$self->selected_cards} ) {
-        foreach my $card (@{$self->selected_cards})
-        {
-            $card->foreground;
-        }
+        $self->_selected_cards_to_foreground;
 
         my @stack
             = @{$self->selected_cards}
