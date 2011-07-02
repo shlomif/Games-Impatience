@@ -892,35 +892,38 @@ sub _init_background {
     }
 }
 
+use Games::Impatience::PySolDeal;
+
 sub _init_cards {
     my $self = shift;
 
-    my $stack_index    = 0;
-    my $stack_position = 0;
-    my $card_values = _fisher_yates_shuffle([0..51]);
+    my $num_cols = 7;
 
-    my $card_idx = 0;
-    foreach my $card_value ( @$card_values )
-    {
+    # TODO : Make the seed customisable.
+    my $cards_aref = Games::Impatience::PySolDeal::shuffle({ seed => 1});
+
+    my $handle_card = sub {
+        my ($card, $dealt, $visible, $stack_index, $stack_position) = @_;
+        my $suit = $card->{suit};
+        my $rank = $card->{rank};
+
+        my $card_value = $suit*$NUM_RANKS_IN_SUITS + $rank;
+
         my $image   = 'data/card_back.png';
-        my $visible = 0;
-        my ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
-
-        if ($card_idx < 28)
+        my ($x, $y);
+        
+        if ($dealt)
         {
-            if ($stack_position > $stack_index)
-            {
-                $stack_index++;
-                $stack_position = 0;
-            }
-            if ($stack_position == $stack_index)
+            if ($visible)
             {
                 $image   = "data/card_$card_value.png";
-                $visible = 1;
             }
             $x = $self->_point_x('left_stack_position') + $self->_point_x('space_between_stacks') * $stack_index;
             $y = $self->_point_y('left_stack_position') + $self->_point_y('space_between_stacks') * $stack_position;
-            $stack_position++;
+        }
+        else
+        {
+            ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
         }
 
         $self->_add_layer(
@@ -933,18 +936,69 @@ sub _init_cards {
                     type => 'card',
                     id => $card_value,
                     visible => $visible,
-                    suit => _get_card_suit($card_value),
-                    rank => _get_card_rank($card_value),
+                    suit => $suit,
+                    rank => $rank,
                     deck_idx => 0,
                 },
             }
         );
+    };
+
+    my $get_card = sub {
+        return shift(@$cards_aref);
+    };
+
+    for my $r (1 .. $num_cols)
+    {
+        for my $s (0 .. $num_cols-$r-1)
+        {
+            $handle_card->($get_card->(), 1, 0, $num_cols-$s-1, $r-1);
+        }
+    }
+
+    foreach my $col (0 .. $num_cols-1)
+    {
+        $handle_card->($get_card->(), 1, 1, $num_cols-$col-1, $num_cols-$col-1);
+    }
+
+    while (my $c = pop(@$cards_aref))
+    {
+        $handle_card->($c, 0, 0);
+    }
+=begin removed
+
+    my $card_idx = 0;
+    foreach my $card ( @$cards_aref )
+    {
+        my $dealt = (($card_idx < 28) ? 1 : 0);
+        my $visible = 0;
+
+        if ($dealt)
+        {
+            if ($stack_position > $stack_index)
+            {
+                $stack_index++;
+                $stack_position = 0;
+            }
+            if ($stack_position == $stack_index)
+            {
+                $visible = 1;
+            }
+        }
+
+        $handle_card->($card, $card_idx, $dealt, $visible);
     }
     continue
     {
         $card_idx++;
+        $stack_position++;
     }
+=end removed
+
+=cut
+
 }
+
 
 sub _fisher_yates_shuffle
 {
