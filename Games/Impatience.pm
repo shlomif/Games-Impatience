@@ -722,7 +722,7 @@ sub _hide_card {
     && _is_num( $layer->data->{id} )
     && $layer->data->{visible}) {
         $layer->surface(SDL::Image::load('data/card_back.png'));
-        $layer->data({id => $layer->data->{id}, visible => 0});
+        $layer->data->{visible} = 0;
     }
 }
 
@@ -735,7 +735,7 @@ sub _show_card {
     && _is_num ($layer->data->{id} )
     && !$layer->data->{visible}) {
         $layer->surface(SDL::Image::load('data/card_' . $layer->data->{id} . '.png'));
-        $layer->data({id => $layer->data->{id}, visible => 1});
+        $layer->data->{visible} = 1;
     }
 }
 
