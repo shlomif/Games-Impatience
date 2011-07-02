@@ -116,6 +116,11 @@ sub _add_layer
         Carp::confess("'data' is not a HASH.");
     }
 
+    if (! exists($data->{type}) )
+    {
+        Carp::confess("data->type should be specified.");
+    }
+
     my $image_path = $args->{'image_path'}
         or Carp::confess("No 'image_path' specified.");
 
@@ -749,7 +754,7 @@ sub _init_background {
         {
             image_path => 'data/empty_stack.png',
             p => $self->_point('rewind_deck_1_position'),
-            data => {id => 'rewind_deck'},
+            data => {type => 'talon_undealt', id => 'rewind_deck', },
         }
     );
 
@@ -757,7 +762,7 @@ sub _init_background {
         {
             image_path => 'data/empty_stack.png',
             p => $self->_point('rewind_deck_2_position'),
-            data => {id => 'empty_deck'},
+            data => {type => 'talon_dealt', id => 'empty_deck'},
         }
     );
     
@@ -768,7 +773,7 @@ sub _init_background {
                 x => 
                 ($self->_point_x('left_target_position') + $self->_point_x('space_between_stacks') * $idx),
                 y => ($self->_point_y('left_target_position')),
-                data => {id => 'empty_target_' . $idx}
+                data => {type => 'foundations', idx => $idx, id => 'empty_target_' . $idx}
             }
         );
     }
@@ -824,7 +829,12 @@ sub _init_cards {
                 image_path => $image,
                 x => $x,
                 y => $y,
-                data => {id => $card_value, visible => $visible},
+                data =>
+                {
+                    type => 'card',
+                    id => $card_value,
+                    visible => $visible,
+                },
             }
         );
     }
