@@ -203,6 +203,13 @@ sub _get_layer_suit
     return $layer->data->{suit};
 }
 
+sub _get_layer_color
+{
+    my ($self, $layer) = @_;
+
+    return ($self->_get_layer_suit($layer) & 0x1);
+}
+
 sub _is_the_layer_an_ace
 {
     my ($self,$layer) = @_;
@@ -215,6 +222,20 @@ sub _is_the_layer_a_king
     my ($self,$layer) = @_;
 
     return ($self->_get_layer_rank($layer) == $KING_RANK);
+}
+
+sub _can_layer_be_placed
+{
+    my ($self, $card_obj, $target_obj) = @_;
+
+    return
+    (
+        ($self->_get_layer_color($card_obj) !=
+            $self->_get_layer_color($target_obj)
+        )
+        &&
+        ($self->_get_layer_rank($card_obj)+1 == $self->_get_layer_rank($target_obj))
+    );
 }
 
 sub _on_quit
@@ -685,14 +706,6 @@ sub _get_card_suit
 
     return int( $card / $NUM_RANKS_IN_SUITS );
 }
-
-sub _get_card_color
-{
-    my ($card) = @_;
-
-    return (_get_card_suit($card) & 0x1);
-}
-
 sub _get_card_rank
 {
     my ($card) = @_;
@@ -784,11 +797,8 @@ sub _can_drop_two_cards
             && $target == $stack->data->{id}
             && $stack->data->{visible}
         )
-            or
-        (
-            (_get_card_color($card) != _get_card_color($target))
-            && (_get_card_rank($card)+1 == _get_card_rank($target))
-        )
+            or 
+        $self->_can_layer_be_placed($card_obj, $target_obj)
     );
 }
 
