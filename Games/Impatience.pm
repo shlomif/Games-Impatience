@@ -121,6 +121,21 @@ sub _add_layer
         Carp::confess("data->type should be specified.");
     }
 
+    if ($data->{type} eq 'card')
+    {
+        if (not 
+            (
+                exists($data->{suit}) 
+                && exists($data->{rank})
+                && exists($data->{deck_idx})
+            )
+        )
+        {
+            Carp::confess("For cards: the suit, rank and deck_idx must be specified.");
+        }
+    }
+
+
     my $image_path = $args->{'image_path'}
         or Carp::confess("No 'image_path' specified.");
 
@@ -834,6 +849,9 @@ sub _init_cards {
                     type => 'card',
                     id => $card_value,
                     visible => $visible,
+                    suit => _get_card_suit($card_value),
+                    rank => _get_card_rank($card_value),
+                    deck_idx => 0,
                 },
             }
         );
