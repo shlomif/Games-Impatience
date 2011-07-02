@@ -170,6 +170,24 @@ sub _is_the_layer_a_card
     return ($layer->data->{type} eq 'card');
 }
 
+sub _is_the_layer_the_undealt_talon
+{
+    my ($self,$layer) = @_;
+
+    return ($layer->data->{type} eq 'talon_undealt');
+}
+
+sub _get_layer_suit
+{
+    my ($self,$layer) = @_;
+
+    if (! $self->_is_the_layer_a_card($layer))
+    {
+        Carp::confess("layer is not a card.");
+    }
+
+    return $layer->data->{suit};
+}
 
 sub _on_quit
 {
@@ -283,7 +301,7 @@ sub _on_click {
                     $self->_show_card($layer);
                 }
             }
-            elsif ($layer->data->{id} =~ m/rewind_deck/) {
+            elsif ($self->_is_the_layer_the_undealt_talon($layer)) {
                 $layer = $self->layers->by_position(@{$self->_point_xy('rewind_deck_2_hotspot')});
                 my @cards = ($layer, @{$layer->behind});
                 pop @cards;
@@ -311,7 +329,9 @@ sub _on_dblclick {
 
     if ( $self->_is_layer_visible($layer) ) {
         my $target = $self->layers->by_position(
-            $self->_point_x('left_target_hotspot') + 11 * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
+            $self->_point_x('left_target_hotspot')
+               + 11 * $self->_get_layer_suit($layer), 
+            $self->_point_y('left_target_hotspot'),
         );
 
         if ( $self->_can_drop_layers($layer, $target) ) {
