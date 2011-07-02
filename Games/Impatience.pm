@@ -9,7 +9,7 @@ use Carp;
 
 use Class::XSAccessor {
     constructor => '_create_empty_new',
-    accessors => [qw(display event fps last_click layers
+    accessors => [qw(display event _foundations fps last_click layers
         left_mouse_down loop _points selected_cards _empty_stacks
     )],
 };
@@ -102,6 +102,7 @@ sub new
     $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
 
     $self->_empty_stacks([]);
+    $self->_foundations([]);
 
     # ADD_HERE_POINT
     return $self;
@@ -771,14 +772,7 @@ sub _get_card_stack
 {
     my ($self, $card) = @_;
 
-    my $card_suit = _get_card_suit($card);
-
-    return $self->layers->by_position(
-        $self->_point_x('left_target_hotspot') 
-        + $self->_point_x('space_between_stacks') * $card_suit
-            ,
-        $self->_point_y('left_target_hotspot')
-    );
+    return $self->_foundations->[$self->_get_layer_suit($card)];
 }
 
 sub _can_drop_two_cards
@@ -788,7 +782,7 @@ sub _can_drop_two_cards
     my $card = $card_obj->data->{id};
     my $target = $target_obj->data->{id};
 
-    my $stack = $self->_get_card_stack($card);
+    my $stack = $self->_get_card_stack($card_obj);
     
     return 
     (
@@ -864,6 +858,7 @@ sub _init_background {
     );
     
     foreach my $idx (0 .. 3) {
+        push @{$self->_foundations()},
         $self->_add_layer(
             {
                 image_path => 'data/empty_target_' . $idx . '.png',
