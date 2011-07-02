@@ -64,6 +64,9 @@ my $NUM_RANKS_IN_SUITS = 13;
 
 my $hotspot_offset         = 20;
 
+my $KING_RANK = $NUM_RANKS_IN_SUITS - 1;
+my $ACE_RANK  = 0;
+
 sub new
 {
     my $class = shift;
@@ -121,7 +124,7 @@ sub _add_layer
         Carp::confess("data->type should be specified.");
     }
 
-    if ($data->{type} eq 'card')
+    if (($data->{type} eq 'card') || ($data->{type} eq 'foundations'))
     {
         if (not 
             (
@@ -134,7 +137,6 @@ sub _add_layer
             Carp::confess("For cards: the suit, rank and deck_idx must be specified.");
         }
     }
-
 
     my $image_path = $args->{'image_path'}
         or Carp::confess("No 'image_path' specified.");
@@ -177,6 +179,18 @@ sub _is_the_layer_the_undealt_talon
     return ($layer->data->{type} eq 'talon_undealt');
 }
 
+sub _get_layer_rank
+{
+    my ($self,$layer) = @_;
+
+    if (! $self->_is_the_layer_a_card($layer))
+    {
+        Carp::confess("layer is not a card.");
+    }
+
+    return $layer->data->{rank};
+}
+
 sub _get_layer_suit
 {
     my ($self,$layer) = @_;
@@ -187,6 +201,20 @@ sub _get_layer_suit
     }
 
     return $layer->data->{suit};
+}
+
+sub _is_the_layer_an_ace
+{
+    my ($self,$layer) = @_;
+
+    return ($self->_get_layer_rank($layer) == $ACE_RANK);
+}
+
+sub _is_the_layer_a_king
+{
+    my ($self,$layer) = @_;
+
+    return ($self->_get_layer_rank($layer) == $KING_RANK);
 }
 
 sub _on_quit
@@ -430,9 +458,9 @@ sub _is_layer_visible {
     return
     (
            defined $layer
-        && _is_num( $layer->data->{id} )
+        && $self->_is_the_layer_a_card($layer)
         && $layer->data->{visible}
-        && !scalar @{$layer->ahead}
+        && (!scalar @{$layer->ahead})
     );
 }
 
@@ -440,7 +468,7 @@ sub _handle_layer {
     my ($self, $layer, $stack_ref) = @_;
 
     my $target = $self->layers->by_position(
-        $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
+        $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $self->_get_layer_suit($layer), $self->_point_y('left_target_hotspot')
     );
 
     if ( $self->_can_drop($layer, $target) ) {
@@ -684,28 +712,41 @@ sub _is_card_an_ace {
     return (_get_card_rank($card) == 0);
 }
 
+sub _is_empty_foundation {
+    my ($self, $layer, $card_suit) = @_;
+
+    return (
+           ($layer->data->{'type'} eq 'foundations')
+        && ($layer->data->{'suit'} == $card_suit)
+        && ($layer->data->{'rank'} == -1)
+        );
+}
+
 sub _can_drop {
     my ($self, $card_obj, $target_obj) = @_;
 
-    my $card = $card_obj->data->{id};
-
-    my $card_suit = _get_card_suit($card);
+    my $card_suit = $self->_get_layer_suit($card_obj);
+    my $card_rank = $self->_get_layer_rank($card_obj);
 
     # Kings can be put on empty fields.
-    if (_is_card_a_king($card) && ($self->_is_empty_stack($target_obj))) {
+    if ($self->_is_the_layer_a_king($card_obj) && ($self->_is_empty_stack($target_obj))) {
         return 1;
     }
     
-    my $target = $target_obj->data->{id};
-
     # Aces can be put on empty field (at upper right)
-    if ( _is_card_an_ace($card) 
-        && $target eq "empty_target_$card_suit") {
+    if ( $self->_is_the_layer_an_ace($card_obj)
+        && $self->_is_empty_foundation(
+            $target_obj, 
+            $self->_get_layer_suit($card_obj),
+        )
+    )
+    {
         return 1;
     }
     
-    if (_is_num($card) && _is_num($target)
-        && $self->_can_drop_two_cards($card, $target))
+    if ($self->_is_the_layer_a_card($card_obj)
+        && $self->_is_the_layer_a_card($target_obj)
+        && $self->_can_drop_two_cards($card_obj, $target_obj))
     {
         return 1;
     }
@@ -729,7 +770,10 @@ sub _get_card_stack
 
 sub _can_drop_two_cards
 {
-    my ($self, $card, $target) = @_;
+    my ($self, $card_obj, $target_obj) = @_;
+
+    my $card = $card_obj->data->{id};
+    my $target = $target_obj->data->{id};
 
     my $stack = $self->_get_card_stack($card);
     
@@ -816,7 +860,14 @@ sub _init_background {
                 x => 
                 ($self->_point_x('left_target_position') + $self->_point_x('space_between_stacks') * $idx),
                 y => ($self->_point_y('left_target_position')),
-                data => {type => 'foundations', idx => $idx, id => 'empty_target_' . $idx}
+                data => {
+                    type => 'foundations', 
+                    suit => $idx,
+                    deck_idx => 0,
+                    rank => -1,
+                    idx => $idx,
+                    id => 'empty_target_' . $idx
+                },
             }
         );
     }
