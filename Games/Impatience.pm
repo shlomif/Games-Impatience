@@ -16,7 +16,7 @@ use Class::XSAccessor {
 
 =head1 NAME
 
-Games::Impatience - an implementation of Patience for Perl/SDL (Klondike 
+Games::Impatience - an implementation of Patience for Perl/SDL (Klondike
 so far)
 
 =head1 VERSION
@@ -127,9 +127,9 @@ sub _add_layer
 
     if (($data->{type} eq 'card') || ($data->{type} eq 'foundations'))
     {
-        if (not 
+        if (not
             (
-                exists($data->{suit}) 
+                exists($data->{suit})
                 && exists($data->{rank})
                 && exists($data->{deck_idx})
             )
@@ -154,7 +154,7 @@ sub _add_layer
 
     my $layer =
         SDLx::Layer->new(
-            SDL::Image::load($image_path), 
+            SDL::Image::load($image_path),
             (defined($p) ? (@{$p->xy()}) : defined($x) ? ($x,$y) : ()),
             $data
         );
@@ -380,7 +380,7 @@ sub _on_dblclick {
     if ( $self->_is_layer_visible($layer) ) {
         my $target = $self->layers->by_position(
             $self->_point_x('left_target_hotspot')
-               + 11 * $self->_get_layer_suit($layer), 
+               + 11 * $self->_get_layer_suit($layer),
             $self->_point_y('left_target_hotspot'),
         );
 
@@ -501,10 +501,10 @@ sub _handle_layer {
         my $square = sub { my $n = shift; return $n*$n; };
 
         my $calc_dx = sub {
-            return ( _x($target) - _x($layer) ); 
+            return ( _x($target) - _x($layer) );
         };
-        my $calc_dy = sub { 
-            return ( _y($target) - _y($layer) ); 
+        my $calc_dy = sub {
+            return ( _y($target) - _y($layer) );
         };
 
         my $calc_dist = sub {
@@ -552,9 +552,9 @@ sub _calc_default_layer {
 
     return +($idx == -1)
         ? $self->layers->by_position( @{$self->_point_xy('rewind_deck_2_hotspot')} )
-        : $self->layers->by_position( 
-            $self->_point_x('left_stack_hotspot') + $self->_point_x('space_between_stacks') * $idx, 
-            $self->_point_y('left_stack_hotspot') 
+        : $self->layers->by_position(
+            $self->_point_x('left_stack_hotspot') + $self->_point_x('space_between_stacks') * $idx,
+            $self->_point_y('left_stack_hotspot')
         );
 }
 
@@ -573,9 +573,9 @@ sub _handle_mouse_button_up
             my $layer = $self->_calc_default_layer($idx);
 
             my @stack = ($layer, @{$layer->ahead});
-            
+
             $layer = pop @stack if scalar @stack;
-            
+
             if ( $self->_is_layer_visible($layer) ) {
                 $dropped = $self->_handle_layer($layer, \@stack);
             }
@@ -628,7 +628,7 @@ sub _handle_key_down_event
         foreach my $bmp_fn (<Shot*.bmp>)
         {
             if (my ($new_index) = $bmp_fn =~ /Shot(\d+)\.bmp/)
-            { 
+            {
                 if ($new_index >= $screen_shot_index)
                 {
                     $screen_shot_index = $new_index + 1;
@@ -685,7 +685,7 @@ sub _run
     my $self = shift;
 
     $self->selected_cards([]);
-    
+
     while ($self->loop) {
         $self->_event_loop;
         $self->layers->blit($self->display);
@@ -746,18 +746,18 @@ sub _can_drop {
     if ($self->_is_the_layer_a_king($card_obj) && ($self->_is_empty_stack($target_obj))) {
         return 1;
     }
-    
+
     # Aces can be put on empty field (at upper right)
     if ( $self->_is_the_layer_an_ace($card_obj)
         && $self->_is_empty_foundation(
-            $target_obj, 
+            $target_obj,
             $self->_get_layer_suit($card_obj),
         )
     )
     {
         return 1;
     }
-    
+
     if ($self->_is_the_layer_a_card($card_obj)
         && $self->_is_the_layer_a_card($target_obj)
         && $self->_can_drop_two_cards($card_obj, $target_obj))
@@ -783,15 +783,15 @@ sub _can_drop_two_cards
     my $target = $target_obj->data->{id};
 
     my $stack = $self->_get_card_stack($card_obj);
-    
-    return 
+
+    return
     (
         (
             $card == $target + 1
             && $target == $stack->data->{id}
             && $stack->data->{visible}
         )
-            or 
+            or
         $self->_can_layer_be_placed($card_obj, $target_obj)
     );
 }
@@ -856,17 +856,17 @@ sub _init_background {
             data => {type => 'talon_dealt', id => 'empty_deck'},
         }
     );
-    
+
     foreach my $idx (0 .. 3) {
         push @{$self->_foundations()},
         $self->_add_layer(
             {
                 image_path => 'data/empty_target_' . $idx . '.png',
-                x => 
+                x =>
                 ($self->_point_x('left_target_position') + $self->_point_x('space_between_stacks') * $idx),
                 y => ($self->_point_y('left_target_position')),
                 data => {
-                    type => 'foundations', 
+                    type => 'foundations',
                     suit => $idx,
                     deck_idx => 0,
                     rank => -1,
@@ -876,14 +876,14 @@ sub _init_background {
             }
         );
     }
-     
+
     for my $idx (0 .. 6)
     {
         push @{$self->_empty_stacks()},
             $self->_add_layer(
                 {
                     image_path => ('data/empty_stack.png'),
-                    x => ($self->_point_x('left_stack_position') + 
+                    x => ($self->_point_x('left_stack_position') +
                     $idx * $self->_point_x('space_between_stacks')),
                     y => $self->_point_y('left_stack_position'),
                     data => {type => 'empty_stack', idx => $idx},
@@ -905,7 +905,7 @@ sub _init_cards {
         my $image   = 'data/card_back.png';
         my $visible = 0;
         my ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
-        
+
         if ($card_idx < 28)
         {
             if ($stack_position > $stack_index)
@@ -922,7 +922,7 @@ sub _init_cards {
             $y = $self->_point_y('left_stack_position') + $self->_point_y('space_between_stacks') * $stack_position;
             $stack_position++;
         }
-        
+
         $self->_add_layer(
             {
                 image_path => $image,
@@ -1007,7 +1007,7 @@ L<http://search.cpan.org/dist/Games-Impatience/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright by Tobias Leich ("FROGGS"), 2010-2011 under the Artistic 2.0 
+Copyright by Tobias Leich ("FROGGS"), 2010-2011 under the Artistic 2.0
 License (or at your option any later version of that license). See the
 C<COPYING> file for details.
 
