@@ -10,7 +10,7 @@ use Carp;
 use Class::XSAccessor {
     constructor => '_create_empty_new',
     accessors => [qw(display event fps last_click layers
-        left_mouse_down loop _points selected_cards
+        left_mouse_down loop _points selected_cards _empty_stacks
     )],
 };
 
@@ -98,6 +98,8 @@ sub new
     $self->_add_point('left_target_hotspot', { x=> 370, y => 40, });
     $self->_add_point('space_between_stacks', { x=> 110, y => 20, });
 
+    $self->_empty_stacks([]);
+
     # ADD_HERE_POINT
     return $self;
 }
@@ -125,7 +127,9 @@ sub _is_empty_stack
 
     my $target = shift;
 
-    return ($target eq 'empty_stack');
+    return (exists($target->data->{'type'}) &&
+        ($target->data->{'type'} eq 'empty_stack')
+    );
 }
 
 sub _selected_cards_to_foreground
@@ -159,7 +163,7 @@ sub _on_drop {
 
         if (@stack) {
             # to empty field
-            if ($self->_is_empty_stack($stack[0]->data->{id})
+            if ($self->_is_empty_stack($stack[0])
                 && $self->_can_drop_layers(
                     $self->selected_cards->[0], $stack[0]
                 )
@@ -352,7 +356,7 @@ sub _handle_layer {
         $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * int($layer->data->{id} / $NUM_RANKS_IN_SUITS), $self->_point_y('left_target_hotspot')
     );
 
-    if ( $self->_can_drop($layer->data->{id}, $target->data->{id}) ) {
+    if ( $self->_can_drop($layer, $target) ) {
 
         $layer->attach($self->event->button_x, $self->event->button_y);
         $layer->foreground;
@@ -594,15 +598,19 @@ sub _is_card_an_ace {
 }
 
 sub _can_drop {
-    my ($self, $card, $target) = @_;
+    my ($self, $card_obj, $target_obj) = @_;
+
+    my $card = $card_obj->data->{id};
 
     my $card_suit = _get_card_suit($card);
 
     # Kings can be put on empty fields.
-    if (_is_card_a_king($card) && ($self->_is_empty_stack($target))) {
+    if (_is_card_a_king($card) && ($self->_is_empty_stack($target_obj))) {
         return 1;
     }
     
+    my $target = $target_obj->data->{id};
+
     # Aces can be put on empty field (at upper right)
     if ( _is_card_an_ace($card) 
         && $target eq "empty_target_$card_suit") {
@@ -656,7 +664,7 @@ sub _can_drop_two_cards
 sub _can_drop_layers {
     my ($self, $source, $target) = @_;
 
-    return $self->_can_drop(map { $_->data->{id} } ($source, $target));
+    return $self->_can_drop($source, $target);
 }
 
 sub _hide_card {
@@ -725,12 +733,18 @@ sub _init_background {
      
     for my $idx (0 .. 6)
     {
-        $self->layers->add(
-            SDLx::Layer->new(SDL::Image::load('data/empty_stack.png'),
-                $self->_point_x('left_stack_position')  + $self->_point_x('space_between_stacks') * $idx, $self->_point_y('left_stack_position'),
-                {id => 'empty_stack'}
-            )
+        my $layer = 
+            SDLx::Layer->new(
+                SDL::Image::load('data/empty_stack.png'),
+                $self->_point_x('left_stack_position') + 
+                    $idx * $self->_point_x('space_between_stacks'),
+                $self->_point_y('left_stack_position'),
+                {type => 'empty_stack', idx => $idx}
         );
+
+        push @{$self->_empty_stacks()}, $layer;
+
+        $self->layers->add($layer);
     }
 }
 
