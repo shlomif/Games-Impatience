@@ -10,7 +10,7 @@ use Carp;
 use Class::XSAccessor {
     constructor => '_create_empty_new',
     accessors => [qw(display event _foundations fps last_click layers
-        left_mouse_down loop _points selected_cards _empty_stacks
+        left_mouse_down loop _points selected_cards _empty_stacks seed
     )],
 };
 
@@ -70,8 +70,9 @@ my $ACE_RANK  = 0;
 sub new
 {
     my $class = shift;
+    my $args = shift;
 
-    my $self = $class->_create_empty_new(@_);
+    my $self = $class->_create_empty_new(%$args);
 
     SDL::init(SDL_INIT_VIDEO);
 
@@ -900,7 +901,9 @@ sub _init_cards {
     my $num_cols = 7;
 
     # TODO : Make the seed customisable.
-    my $cards_aref = Games::Impatience::PySolDeal::shuffle({ seed => 1});
+    my $cards_aref = Games::Impatience::PySolDeal::shuffle(
+        { seed => $self->seed(),}
+    );
 
     my $handle_card = sub {
         my ($card, $dealt, $visible, $stack_index, $stack_position) = @_;

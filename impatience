@@ -5,7 +5,24 @@ use warnings;
 
 use Games::Impatience;
 
-my $game = Games::Impatience->new;
+use Getopt::Long;
+
+my $seed;
+GetOptions(
+    'seed=i' => \$seed,
+) or die "Wrong options!";
+
+if (!defined($seed))
+{
+    die "Please specify a seed using the --seed command line option.";
+};
+
+my $game = Games::Impatience->new(
+    {
+        seed => $seed,
+    }
+);
+
 $game->play();
 
 1;
