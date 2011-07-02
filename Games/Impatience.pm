@@ -163,6 +163,14 @@ sub _add_layer
     return $layer;
 }
 
+sub _is_the_layer_a_card
+{
+    my ($self,$layer) = @_;
+
+    return ($layer->data->{type} eq 'card');
+}
+
+
 sub _on_quit
 {
     my ($self) = @_;
@@ -263,7 +271,7 @@ sub _on_click {
         my $layer = $self->layers->by_position($self->event->button_x, $self->event->button_y);
 
         if (defined $layer) {
-            if (_is_num( $layer->data->{id} )) {
+            if ($self->_is_the_layer_a_card($layer)) {
                 if ($layer->data->{visible}) {
                     $self->selected_cards([$layer, @{$layer->ahead}]);
                     $self->layers->attach(@{$self->selected_cards}, $self->event->button_x, $self->event->button_y);
