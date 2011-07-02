@@ -104,6 +104,45 @@ sub new
     return $self;
 }
 
+sub _add_layer
+{
+    my ($self, $args) = @_;
+
+    my $data = $args->{'data'}
+        or Carp::confess("No 'data' specified.");
+
+    if (ref($data) ne "HASH")
+    {
+        Carp::confess("'data' is not a HASH.");
+    }
+
+    my $image_path = $args->{'image_path'}
+        or Carp::confess("No 'image_path' specified.");
+
+    my $x = $args->{'x'};
+    my $y = $args->{'y'};
+
+    my $p = $args->{'p'};
+
+    if (defined($p) && (defined($x) || defined($y)))
+    {
+        Carp::confess("specify either 'p' or both 'x' and 'y'");
+    }
+
+    my $layer =
+        SDLx::Layer->new(
+            SDL::Image::load($image_path), 
+            (defined($p) ? (@{$p->xy()}) : defined($x) ? ($x,$y) : ()),
+            $data
+        );
+
+    $self->layers->add(
+        $layer
+    );
+
+    return $layer;
+}
+
 sub _on_quit
 {
     my ($self) = @_;
@@ -699,52 +738,53 @@ sub _init_background {
 
     my $self = shift;
 
-    $self->layers->add(
-        SDLx::Layer->new(
-            SDL::Image::load('data/background.png'),
-            {id => 'background'}
-        )
+    $self->_add_layer(
+        {
+            image_path => 'data/background.png',
+            data => {type => 'background', id => 'background'},
+        },
     );
-    $self->layers->add(
-        SDLx::Layer->new(
-            SDL::Image::load('data/empty_stack.png'), 
-            @{$self->_point_xy('rewind_deck_1_position')}, 
-            {id => 'rewind_deck'}
-        )
+
+    $self->_add_layer(
+        {
+            image_path => 'data/empty_stack.png',
+            p => $self->_point('rewind_deck_1_position'),
+            data => {id => 'rewind_deck'},
+        }
     );
-    $self->layers->add(
-        SDLx::Layer->new(
-            SDL::Image::load('data/empty_stack.png'),
-            @{$self->_point_xy('rewind_deck_2_position')},
-            {id => 'empty_deck'}
-        )
+
+    $self->_add_layer(
+        {
+            image_path => 'data/empty_stack.png',
+            p => $self->_point('rewind_deck_2_position'),
+            data => {id => 'empty_deck'},
+        }
     );
     
     foreach my $idx (0 .. 3) {
-        $self->layers->add(
-            SDLx::Layer->new(
-                SDL::Image::load('data/empty_target_' . $idx . '.png'),
-                $self->_point_x('left_target_position') + $self->_point_x('space_between_stacks') * $idx,
-                $self->_point_y('left_target_position'),
-                {id => 'empty_target_' . $idx}
-            )
+        $self->_add_layer(
+            {
+                image_path => 'data/empty_target_' . $idx . '.png',
+                x => 
+                ($self->_point_x('left_target_position') + $self->_point_x('space_between_stacks') * $idx),
+                y => ($self->_point_y('left_target_position')),
+                data => {id => 'empty_target_' . $idx}
+            }
         );
     }
      
     for my $idx (0 .. 6)
     {
-        my $layer = 
-            SDLx::Layer->new(
-                SDL::Image::load('data/empty_stack.png'),
-                $self->_point_x('left_stack_position') + 
-                    $idx * $self->_point_x('space_between_stacks'),
-                $self->_point_y('left_stack_position'),
-                {type => 'empty_stack', idx => $idx}
-        );
-
-        push @{$self->_empty_stacks()}, $layer;
-
-        $self->layers->add($layer);
+        push @{$self->_empty_stacks()},
+            $self->_add_layer(
+                {
+                    image_path => ('data/empty_stack.png'),
+                    x => ($self->_point_x('left_stack_position') + 
+                    $idx * $self->_point_x('space_between_stacks')),
+                    y => $self->_point_y('left_stack_position'),
+                    data => {type => 'empty_stack', idx => $idx},
+                }
+            );
     }
 }
 
@@ -779,12 +819,13 @@ sub _init_cards {
             $stack_position++;
         }
         
-        $self->layers->add(
-            SDLx::Layer->new(
-                SDL::Image::load($image), 
-                $x, $y, 
-                {id => $card_value, visible => $visible}
-            )
+        $self->_add_layer(
+            {
+                image_path => $image,
+                x => $x,
+                y => $y,
+                data => {id => $card_value, visible => $visible},
+            }
         );
     }
     continue
