@@ -819,8 +819,10 @@ sub _hide_card {
     my $layer = $self->layers->by_position(@{$xy->xy});
 
     if ($layer
-    && _is_num( $layer->data->{id} )
-    && $layer->data->{visible}) {
+        && $self->_is_the_layer_a_card($layer)
+        && $layer->data->{visible}
+    )
+    {
         $layer->surface(SDL::Image::load('data/card_back.png'));
         $layer->data->{visible} = 0;
     }
@@ -832,8 +834,9 @@ sub _show_card {
     my $layer = (scalar @_ == 2) ? $self->layers->by_position(@_) : shift;
 
     if ($layer
-    && _is_num ($layer->data->{id} )
-    && !$layer->data->{visible}) {
+        && $self->_is_the_layer_a_card($layer)
+        && !$layer->data->{visible})
+    {
         $layer->surface(SDL::Image::load('data/card_' . $layer->data->{id} . '.png'));
         $layer->data->{visible} = 1;
     }
