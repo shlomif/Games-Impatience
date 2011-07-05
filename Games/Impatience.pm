@@ -174,6 +174,13 @@ sub _calc_card_idx
     return $args->{suit}*$NUM_RANKS_IN_SUITS + $args->{rank};
 }
 
+sub _calc_card_visible_image_path
+{
+    my ($self, $args) = @_;
+
+    return sprintf('data/card_%d.png', $self->_calc_card_idx($args));
+}
+
 sub _is_the_layer_a_card
 {
     my ($self,$layer) = @_;
@@ -846,7 +853,7 @@ sub _show_card {
     {
         $layer->surface(
             SDL::Image::load(
-                'data/card_' . $self->_calc_card_idx($layer->data) . '.png'
+                $self->_calc_card_visible_image_path($layer->data)
             )
         );
         $layer->data->{visible} = 1;
@@ -939,7 +946,7 @@ sub _init_cards {
         {
             if ($visible)
             {
-                $image   = "data/card_$card_value.png";
+                $image = $self->_calc_card_visible_image_path($card);
             }
             $x = $self->_point_x('left_stack_position') + $self->_point_x('space_between_stacks') * $stack_index;
             $y = $self->_point_y('left_stack_position') + $self->_point_y('space_between_stacks') * $stack_position;
