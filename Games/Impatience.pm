@@ -988,38 +988,8 @@ sub _init_cards {
     {
         $handle_card->($c, 0, 0);
     }
-=begin removed
 
-    my $card_idx = 0;
-    foreach my $card ( @$cards_aref )
-    {
-        my $dealt = (($card_idx < 28) ? 1 : 0);
-        my $visible = 0;
-
-        if ($dealt)
-        {
-            if ($stack_position > $stack_index)
-            {
-                $stack_index++;
-                $stack_position = 0;
-            }
-            if ($stack_position == $stack_index)
-            {
-                $visible = 1;
-            }
-        }
-
-        $handle_card->($card, $card_idx, $dealt, $visible);
-    }
-    continue
-    {
-        $card_idx++;
-        $stack_position++;
-    }
-=end removed
-
-=cut
-
+    return;
 }
 
 
