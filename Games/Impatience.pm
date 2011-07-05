@@ -800,15 +800,17 @@ sub _can_drop_two_cards
 
     my $stack = $self->_get_card_stack($card_obj);
 
+    if (
+        $self->_are_layers_consecutive_suit_cards($card_obj, $target_obj)
+        && ($self->_get_layer_rank($target_obj) == $stack->data->{rank} + 1)
+    )
+    {
+        $stack->data->{rank}++;
+        return 1;
+    }
+
     return
-    (
-        (
-            $self->_are_layers_consecutive_suit_cards($card_obj, $target_obj)
-            && ($target == $stack->data->{rank} + 1)
-        )
-            or
-        $self->_can_layer_be_placed($card_obj, $target_obj)
-    );
+        $self->_can_layer_be_placed($card_obj, $target_obj);
 }
 
 sub _hide_card {
