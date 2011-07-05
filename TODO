@@ -1,3 +1,7 @@
+* Make sure one can drop cards to the foundations. See:
+
+    $ ./impatience --seed=4
+
 (hard) card dragging should be smoother
 (easy) released card shouldn't have to be *exactly* in destination spot
 (easy) card sound!
