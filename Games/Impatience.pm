@@ -240,6 +240,22 @@ sub _can_layer_be_placed
     );
 }
 
+sub _are_layers_consecutive_suit_cards
+{
+    my ($self, $card_obj, $target_obj) = @_;
+
+    return
+    (
+        ($self->_get_layer_suit($card_obj) == 
+            $self->_get_layer_suit($target_obj)
+        )
+        &&
+        ($self->_get_layer_rank($card_obj) == 
+            1 + $self->_get_layer_rank($target_obj)
+        )
+    );
+}
+
 sub _on_quit
 {
     my ($self) = @_;
@@ -494,7 +510,7 @@ sub _handle_layer {
         $self->_point_x('left_target_hotspot') + $self->_point_x('space_between_stacks') * $self->_get_layer_suit($layer), $self->_point_y('left_target_hotspot')
     );
 
-    if ( $self->_can_drop($layer, $target) ) {
+    if ( $self->_can_drop_layers($layer, $target) ) {
 
         $layer->attach($self->event->button_x, $self->event->button_y);
         $layer->foreground;
@@ -737,7 +753,7 @@ sub _is_empty_foundation {
         );
 }
 
-sub _can_drop {
+sub _can_drop_layers {
     my ($self, $card_obj, $target_obj) = @_;
 
     my $card_suit = $self->_get_layer_suit($card_obj);
@@ -780,7 +796,6 @@ sub _can_drop_two_cards
 {
     my ($self, $card_obj, $target_obj) = @_;
 
-    my $card = $card_obj->data->{id};
     my $target = $target_obj->data->{id};
 
     my $stack = $self->_get_card_stack($card_obj);
@@ -788,19 +803,12 @@ sub _can_drop_two_cards
     return
     (
         (
-            $card == $target + 1
-            && $target == $stack->data->{id}
-            && $stack->data->{visible}
+            $self->_are_layers_consecutive_suit_cards($card_obj, $target_obj)
+            && ($target == $stack->data->{rank} + 1)
         )
             or
         $self->_can_layer_be_placed($card_obj, $target_obj)
     );
-}
-
-sub _can_drop_layers {
-    my ($self, $source, $target) = @_;
-
-    return $self->_can_drop($source, $target);
 }
 
 sub _hide_card {
