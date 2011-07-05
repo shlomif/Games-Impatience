@@ -796,8 +796,6 @@ sub _can_drop_two_cards
 {
     my ($self, $card_obj, $target_obj) = @_;
 
-    my $target = $target_obj->data->{id};
-
     my $stack = $self->_get_card_stack($card_obj);
 
     if (
