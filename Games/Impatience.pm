@@ -167,6 +167,13 @@ sub _add_layer
     return $layer;
 }
 
+sub _calc_card_idx
+{
+    my ($self, $args) = @_;
+
+    return $args->{suit}*$NUM_RANKS_IN_SUITS + $args->{rank};
+}
+
 sub _is_the_layer_a_card
 {
     my ($self,$layer) = @_;
@@ -837,7 +844,11 @@ sub _show_card {
         && $self->_is_the_layer_a_card($layer)
         && !$layer->data->{visible})
     {
-        $layer->surface(SDL::Image::load('data/card_' . $layer->data->{id} . '.png'));
+        $layer->surface(
+            SDL::Image::load(
+                'data/card_' . $self->_calc_card_idx($layer->data) . '.png'
+            )
+        );
         $layer->data->{visible} = 1;
     }
 }
@@ -918,10 +929,8 @@ sub _init_cards {
 
     my $handle_card = sub {
         my ($card, $dealt, $visible, $stack_index, $stack_position) = @_;
-        my $suit = $card->{suit};
-        my $rank = $card->{rank};
 
-        my $card_value = $suit*$NUM_RANKS_IN_SUITS + $rank;
+        my $card_value = $self->_calc_card_idx($card);
 
         my $image   = 'data/card_back.png';
         my ($x, $y);
@@ -950,8 +959,8 @@ sub _init_cards {
                     type => 'card',
                     id => $card_value,
                     visible => $visible,
-                    suit => $suit,
-                    rank => $rank,
+                    suit => $card->{suit},
+                    rank => $card->{rank},
                     deck_idx => 0,
                 },
             }
