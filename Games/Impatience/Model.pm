@@ -76,4 +76,11 @@ sub add_card_to_column
     return;
 }
 
+sub get_column_len
+{
+    my ($self, $col_idx) = @_;
+
+    return scalar(@{$self->_columns->[$col_idx]});
+}
+
 1;

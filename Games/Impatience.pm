@@ -942,7 +942,7 @@ sub _init_cards {
     );
 
     my $handle_card = sub {
-        my ($card, $dealt, $visible, $stack_index, $stack_position) = @_;
+        my ($card, $dealt, $visible, $stack_index) = @_;
 
         my $card_value = $self->_calc_card_idx($card);
 
@@ -962,6 +962,9 @@ sub _init_cards {
         if ($dealt)
         {
             $self->_model->add_card_to_column($stack_index, {%card_info});
+
+            my $stack_position =
+                $self->_model->get_column_len($stack_index) - 1;
 
             if ($visible)
             {
@@ -994,13 +997,13 @@ sub _init_cards {
     {
         for my $s (0 .. $num_cols-$r-1)
         {
-            $handle_card->($get_card->(), 1, 0, $num_cols-$s-1, $r-1);
+            $handle_card->($get_card->(), 1, 0, $num_cols-$s-1);
         }
     }
 
     foreach my $col (0 .. $num_cols-1)
     {
-        $handle_card->($get_card->(), 1, 1, $num_cols-$col-1, $num_cols-$col-1);
+        $handle_card->($get_card->(), 1, 1, $num_cols-$col-1);
     }
 
     while (my $c = pop(@$cards_aref))
