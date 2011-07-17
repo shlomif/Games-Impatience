@@ -11,8 +11,11 @@ use Class::XSAccessor {
     constructor => '_create_empty_new',
     accessors => [qw(display event _foundations fps last_click layers
         left_mouse_down loop _points selected_cards _empty_stacks seed
+        _model
     )],
 };
+
+use Games::Impatience::Model;
 
 =head1 NAME
 
@@ -104,6 +107,10 @@ sub new
 
     $self->_empty_stacks([]);
     $self->_foundations([]);
+
+    $self->_model(
+        Games::Impatience::Model->new()
+    );
 
     # ADD_HERE_POINT
     return $self;
@@ -941,9 +948,21 @@ sub _init_cards {
 
         my $image   = 'data/card_back.png';
         my ($x, $y);
-        
+
+        my %card_info = 
+        (
+            type => 'card',
+            id => $card_value,
+            visible => $visible,
+            suit => $card->{suit},
+            rank => $card->{rank},
+            deck_idx => 0,
+        );
+
         if ($dealt)
         {
+            $self->_model->add_card_to_column($stack_index, {%card_info});
+
             if ($visible)
             {
                 $image = $self->_calc_card_visible_image_path($card);
@@ -953,6 +972,7 @@ sub _init_cards {
         }
         else
         {
+            $self->_model->add_card_to_talon({%card_info});
             ($x, $y) = @{$self->_point_xy('rewind_deck_1_position')};
         }
 
@@ -961,15 +981,7 @@ sub _init_cards {
                 image_path => $image,
                 x => $x,
                 y => $y,
-                data =>
-                {
-                    type => 'card',
-                    id => $card_value,
-                    visible => $visible,
-                    suit => $card->{suit},
-                    rank => $card->{rank},
-                    deck_idx => 0,
-                },
+                data => { %card_info },
             }
         );
     };
