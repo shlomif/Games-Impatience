@@ -745,6 +745,7 @@ sub _get_card_suit
 
     return int( $card / $NUM_RANKS_IN_SUITS );
 }
+
 sub _get_card_rank
 {
     my ($card) = @_;
