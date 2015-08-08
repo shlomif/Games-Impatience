@@ -14,7 +14,7 @@ use Class::XSAccessor {
 
 =head1 NAME
 
-Games::ImFreecell - an implementation of Patience for Perl/SDL (Klondike 
+Games::ImFreecell - an implementation of Patience for Perl/SDL (Klondike
 so far)
 
 =head1 VERSION
@@ -115,7 +115,7 @@ L<http://search.cpan.org/dist/Games-Impatience/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright by Tobias Leich ("FROGGS"), 2010-2011 under the Artistic 2.0 
+Copyright by Tobias Leich ("FROGGS"), 2010-2011 under the Artistic 2.0
 License (or at your option any later version of that license). See the
 C<COPYING> file for details.
 

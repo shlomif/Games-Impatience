@@ -267,11 +267,11 @@ sub _are_layers_consecutive_suit_cards
 
     return
     (
-        ($self->_get_layer_suit($card_obj) == 
+        ($self->_get_layer_suit($card_obj) ==
             $self->_get_layer_suit($target_obj)
         )
         &&
-        ($self->_get_layer_rank($card_obj) == 
+        ($self->_get_layer_rank($card_obj) ==
             1 + $self->_get_layer_rank($target_obj)
         )
     );
@@ -950,7 +950,7 @@ sub _init_cards {
         my $image   = 'data/card_back.png';
         my ($x, $y);
 
-        my %card_info = 
+        my %card_info =
         (
             type => 'card',
             id => $card_value,

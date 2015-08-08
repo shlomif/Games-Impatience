@@ -6,18 +6,18 @@ use warnings;
 use Carp;
 
 use Class::XSAccessor {
-    accessors => [qw(_columns _undealt_talon _dealt_talon 
+    accessors => [qw(_columns _undealt_talon _dealt_talon
            _id_lookup _foundations)],
 };
 
 sub new
-{    
+{
     my $class = shift;
 
     my $self = {};
-    
+
     bless $self, $class;
-    
+
     $self->_init(@_);
 
     return $self;

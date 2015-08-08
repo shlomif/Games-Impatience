@@ -1,7 +1,7 @@
 This is Impatience, a card Solitaire / Patience implementation for Perl/SDL
 by FROGGS and Shlomi Fish.
 
-Currently it only implements Klondike ( 
+Currently it only implements Klondike (
 http://en.wikipedia.org/wiki/Klondike_%28solitaire%29 ), without any numbered
 deals.
 
@@ -13,7 +13,7 @@ More information about Patience and card Solitaire can be found at:
 
 * http://en.wikipedia.org/wiki/Category:Solitaire_card_games
 
-* http://pysolfc.sourceforge.net/ - PySolFC, a comprehensive open source 
+* http://pysolfc.sourceforge.net/ - PySolFC, a comprehensive open source
 implementation in Python using Tkinter.
 
 License:

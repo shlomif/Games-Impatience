@@ -11,7 +11,7 @@ my $contents = io->file("solitaire.pl")->slurp;
 
 unless ($contents =~ s/(my \$\Q$point_name\E * = *SDLx::Point2D->new\( *x *=> *(\d+) *, *y *=> *(\d+),? *\);)/# $1/)
 {
-    die "Cannot find $point_name";   
+    die "Cannot find $point_name";
 }
 
 my ($x, $y) = ($2, $3);
